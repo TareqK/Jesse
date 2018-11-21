@@ -17,7 +17,7 @@ public class SessionManagerDefaultImpl implements SessionManager {
     
     @Override
     public void onClose(Session session) {
-       System.out.println(SESSIONS.remove(session));
+       SESSIONS.remove(session);
     }
     
     @Override
