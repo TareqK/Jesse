@@ -43,11 +43,11 @@ public class EventBuilder {
     
     public Event build(){
         StringBuilder builder = new StringBuilder();
-        if(this.event != null){
-            builder.append("event: ").append(event).append("\n");
-        }
         if(this.id != null){
             builder.append("id: ").append(id).append("\n");
+        }
+        if(this.event != null){
+            builder.append("event: ").append(event).append("\n");
         }
         if(this.retry != null){
             builder.append("retry: ").append(retry).append("\n");
