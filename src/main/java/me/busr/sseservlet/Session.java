@@ -28,7 +28,17 @@ public class Session {
     private final ReentrantLock LOCK;
     private static final Logger LOG = Logger.getLogger(Session.class.getName());
 
-    private static SessionManager sessionManager = new SessionManagerDefaultImpl();
+    private SessionManager sessionManager;
+
+    Session(SessionManager sessionManager, AsyncContext asyncContext) {
+        this.sessionManager = sessionManager;
+        this.LOCK = new ReentrantLock();
+        this.asyncContext = asyncContext;
+        asyncContext.setTimeout(-33);
+        asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
+        asyncContext.getResponse().setCharacterEncoding("UTF-8");
+        openSession();
+    }
 
     public void pushEvent(Event event) {
         EXECUTOR.submit(() -> {
@@ -62,10 +72,6 @@ public class Session {
         asyncContext.getResponse().setCharacterEncoding("UTF-8");
         this.asyncContext = asyncContext;
         openSession();
-    }
-
-    public static void setManager(SessionManager sessionManager) {
-        Session.sessionManager = sessionManager;
     }
 
     public String getHeader(String name) {

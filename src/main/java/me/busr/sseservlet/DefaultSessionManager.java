@@ -7,11 +7,11 @@ package me.busr.sseservlet;
 
 import java.util.HashSet;
 
-public class SessionManagerDefaultImpl implements SessionManager {
+public class DefaultSessionManager implements SessionManager {
     
     private static final HashSet<Session> SESSIONS = new HashSet();
     
-    public SessionManagerDefaultImpl() {
+    public DefaultSessionManager() {
         
     }
     
