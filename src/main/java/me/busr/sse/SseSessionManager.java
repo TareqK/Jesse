@@ -17,8 +17,16 @@ import javax.ws.rs.WebApplicationException;
  */
 public abstract class SseSessionManager {
 
+    /**
+     * The thread pool that handles dispatching events
+     */
     protected static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
 
+    /**
+     * Sends an event to a session
+     * @param session
+     * @param event
+     */
     public static void sendEvent(SseSession session, SseEvent event) {
         if (session != null && event != null) {
             EXECUTOR.submit(() -> {
@@ -27,6 +35,11 @@ public abstract class SseSessionManager {
         }
     }
 
+    /**
+     * Broadcast an event to an array of sessions
+     * @param sessions
+     * @param event
+     */
     public static void broadcastEvent(SseSession[] sessions, SseEvent event) {
         if (sessions != null && event != null) {
             EXECUTOR.submit(() -> {
@@ -37,6 +50,11 @@ public abstract class SseSessionManager {
         }
     }
 
+    /**
+     * Broadcast an event to a set of sessions
+     * @param sessions
+     * @param event
+     */
     public static void broadcastEvent(Set<SseSession> sessions, SseEvent event) {
         if (sessions != null && event != null) {
             EXECUTOR.submit(() -> {
@@ -47,6 +65,11 @@ public abstract class SseSessionManager {
         }
     }
 
+    /**
+     * Broadcast an event to a list of sessions
+     * @param sessions
+     * @param event
+     */
     public static void broadcastEvent(List<SseSession> sessions, SseEvent event) {
         if (sessions != null && event != null) {
             EXECUTOR.submit(() -> {
@@ -57,9 +80,23 @@ public abstract class SseSessionManager {
         }
     }
 
+    /**
+     * A method called during the closing  of a session
+     * @param session
+     * @throws WebApplicationException
+     */
     public abstract void onClose(SseSession session) throws WebApplicationException;
 
+    /**
+     * A method called when a session is being opened
+     * @param session
+     * @throws WebApplicationException
+     */
     public abstract void onOpen(SseSession session) throws WebApplicationException;
     
+    /**
+     * A method called when there is an error in sending in a session
+     * @param session
+     */
     public abstract void onError(SseSession session);
 }

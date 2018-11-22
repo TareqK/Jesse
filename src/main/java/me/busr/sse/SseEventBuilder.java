@@ -16,31 +16,57 @@ public class SseEventBuilder {
     private String id;
     private String retry;
     
+    /**
+     * Creates a new event builder
+     */
     public SseEventBuilder(){
         
     }
     
+    /**
+     * Adds data to the event
+     * @param data
+     * @return
+     */
     public SseEventBuilder data(String data){
         this.data = data;
         return this;
     }
     
+    /**
+     * Adds the event type
+     * @param event
+     * @return
+     */
     public SseEventBuilder event(String event){
         this.event = String.valueOf(event);
         return this;
     }
     
+    /**
+     * Adds the event id
+     * @param id
+     * @return
+     */
     public SseEventBuilder id(Object id){
         this.id = String.valueOf(id);
         return this;
     }
     
+    /**
+     * Adds the retry interval
+     * @param retry
+     * @return
+     */
     public SseEventBuilder retry(long retry){
         this.retry = String.valueOf(retry);
         return this;
     }
     
-    
+    /**
+     * Builds the event
+     * @return
+     */
     public SseEvent build(){
         StringBuilder builder = new StringBuilder();
         if(this.id != null){

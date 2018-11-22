@@ -43,6 +43,10 @@ public class SseSession {
         openSession();
     }
 
+    /**
+     * Pushes an event to this SseSession
+     * @param event
+     */
     public void pushEvent(SseEvent event) {
         EXECUTOR.submit(() -> {
             LOCK.lock();
@@ -58,6 +62,9 @@ public class SseSession {
         });
     }
 
+    /**
+     * Closes this sseSession
+     */
     public void closeSession() {
         try {
             sessionManager.onClose(SseSession.this);
@@ -91,6 +98,10 @@ public class SseSession {
         }
     }
 
+    /**
+     * Create a new SseSession without a sessionManager
+     * @param asyncContext
+     */
     protected SseSession(AsyncContext asyncContext) {
         this.LOCK = new ReentrantLock();
         asyncContext.setTimeout(-1);
@@ -100,16 +111,44 @@ public class SseSession {
         openSession();
     }
 
-    public String getHeader(String name) {
-        HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
-        return r.getHeader(name);
-    }
-
+    /**
+     * Get the SseSession cookies
+     * @return the Session Cookies
+     */
     public Cookie[] getCookies() {
         HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
         return r.getCookies();
     }
 
+    /**
+     *
+     * @param cookieName the name of the cookie
+     * @return the cookie, if found
+     * @throws WebApplicationException if the cookie is not found
+     */
+    public Cookie getCookie(String cookieName) throws WebApplicationException{
+        HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
+        for(Cookie cookie : r.getCookies()){
+            if(cookie.getName().equals(cookieName)){
+                return cookie;
+            }
+        }
+        throw new WebApplicationException(400);
+    }
+    
+    /**
+     *
+     * @param cookieName the cookie we are searching for
+     * @return the value field of the cookie
+     */
+    public String getCookieValue(String cookieName){
+        return getCookie(cookieName).getValue();
+    }
+
+    /**
+     *
+     * @return
+     */
     @Override
     public int hashCode() {
         int hash = 3;
@@ -117,6 +156,11 @@ public class SseSession {
         return hash;
     }
 
+    /**
+     *
+     * @param obj
+     * @return
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
