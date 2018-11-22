@@ -15,11 +15,11 @@ import javax.ws.rs.WebApplicationException;
  *
  * @author tareq
  */
-public abstract class SessionManager {
+public abstract class SseSessionManager {
 
     protected static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
 
-    public static void sendEvent(Session session, Event event) {
+    public static void sendEvent(SseSession session, SseEvent event) {
         if (session != null && event != null) {
             EXECUTOR.submit(() -> {
                 session.pushEvent(event);
@@ -27,39 +27,39 @@ public abstract class SessionManager {
         }
     }
 
-    public static void broadcastEvent(Session[] sessions, Event event) {
+    public static void broadcastEvent(SseSession[] sessions, SseEvent event) {
         if (sessions != null && event != null) {
             EXECUTOR.submit(() -> {
-                for (Session session : sessions) {
+                for (SseSession session : sessions) {
                     session.pushEvent(event);
                 }
             });
         }
     }
 
-    public static void broadcastEvent(Set<Session> sessions, Event event) {
+    public static void broadcastEvent(Set<SseSession> sessions, SseEvent event) {
         if (sessions != null && event != null) {
             EXECUTOR.submit(() -> {
-                for (Session session : sessions) {
+                for (SseSession session : sessions) {
                     session.pushEvent(event);
                 }
             });
         }
     }
 
-    public static void broadcastEvent(List<Session> sessions, Event event) {
+    public static void broadcastEvent(List<SseSession> sessions, SseEvent event) {
         if (sessions != null && event != null) {
             EXECUTOR.submit(() -> {
-                for (Session session : sessions) {
+                for (SseSession session : sessions) {
                     session.pushEvent(event);
                 }
             });
         }
     }
 
-    public abstract void onClose(Session session) throws WebApplicationException;
+    public abstract void onClose(SseSession session) throws WebApplicationException;
 
-    public abstract void onOpen(Session session) throws WebApplicationException;
+    public abstract void onOpen(SseSession session) throws WebApplicationException;
     
-    public abstract void onError(Session session);
+    public abstract void onError(SseSession session);
 }

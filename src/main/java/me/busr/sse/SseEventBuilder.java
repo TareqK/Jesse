@@ -9,39 +9,39 @@ package me.busr.sse;
  *
  * @author tareq
  */
-public class EventBuilder {
+public class SseEventBuilder {
     
     private Object data;
     private String event;
     private String id;
     private String retry;
     
-    public EventBuilder(){
+    public SseEventBuilder(){
         
     }
     
-    public EventBuilder data(String data){
+    public SseEventBuilder data(String data){
         this.data = data;
         return this;
     }
     
-    public EventBuilder event(String event){
+    public SseEventBuilder event(String event){
         this.event = String.valueOf(event);
         return this;
     }
     
-    public EventBuilder id(Object id){
+    public SseEventBuilder id(Object id){
         this.id = String.valueOf(id);
         return this;
     }
     
-    public EventBuilder retry(long retry){
+    public SseEventBuilder retry(long retry){
         this.retry = String.valueOf(retry);
         return this;
     }
     
     
-    public Event build(){
+    public SseEvent build(){
         StringBuilder builder = new StringBuilder();
         if(this.id != null){
             builder.append("id: ").append(id).append("\n");
@@ -56,6 +56,6 @@ public class EventBuilder {
             builder.append("data: ").append(data);
         }
         builder.append("\n\n");
-        return new Event(builder.toString());
+        return new SseEvent(builder.toString());
     }
 }

@@ -9,11 +9,11 @@ package me.busr.sse;
  *
  * @author tareq
  */
-public class Event {
+public class SseEvent {
 
     private final String eventString;
     
-    protected Event(String eventString) {
+    protected SseEvent(String eventString) {
         this.eventString  = eventString;
     }
 

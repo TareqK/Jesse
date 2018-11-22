@@ -25,13 +25,13 @@ public class EventStreamServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(EventStreamServlet.class.getName());
     private static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
 
-    SessionManager manager = new DefaultSessionManager();
+    SseSessionManager manager = new DefaultSessionManager();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         AsyncContext asyncContext = request.startAsync();
         EXECUTOR.submit(() -> {
-            new Session(manager, asyncContext);
+            new SseSession(manager, asyncContext);
         });
     }
 
@@ -41,7 +41,7 @@ public class EventStreamServlet extends HttpServlet {
         String sessionManagerClassName = getServletConfig().getInitParameter("me.busr.sse.session.manager");
         try {
             Class<?> sessionManagerClass = Class.forName(sessionManagerClassName);
-            SessionManager sessionManager = (SessionManager) sessionManagerClass.newInstance();
+            SseSessionManager sessionManager = (SseSessionManager) sessionManagerClass.newInstance();
             manager = sessionManager;
             LOG.info("using ".concat(sessionManagerClass.getCanonicalName()).concat(" as session manager"));
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NullPointerException ex) {

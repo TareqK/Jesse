@@ -23,17 +23,17 @@ import javax.ws.rs.core.MediaType;
  *
  * @author tareq
  */
-public class Session {
+public class SseSession {
 
     private static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
     private final AsyncContext asyncContext;
 
     private final ReentrantLock LOCK;
-    private static final Logger LOG = Logger.getLogger(Session.class.getName());
+    private static final Logger LOG = Logger.getLogger(SseSession.class.getName());
 
-    private SessionManager sessionManager;
+    private SseSessionManager sessionManager;
 
-    Session(SessionManager sessionManager, AsyncContext asyncContext) {
+    SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
         this.sessionManager = sessionManager;
         this.LOCK = new ReentrantLock();
         this.asyncContext = asyncContext;
@@ -43,7 +43,7 @@ public class Session {
         openSession();
     }
 
-    public void pushEvent(Event event) {
+    public void pushEvent(SseEvent event) {
         EXECUTOR.submit(() -> {
             LOCK.lock();
             try {
@@ -60,7 +60,7 @@ public class Session {
 
     public void closeSession() {
         try {
-            sessionManager.onClose(Session.this);
+            sessionManager.onClose(SseSession.this);
         } catch (WebApplicationException ex) {
             try {
                 HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
@@ -77,7 +77,7 @@ public class Session {
 
     private void openSession() {
         try {
-            sessionManager.onOpen(Session.this);
+            sessionManager.onOpen(SseSession.this);
         } catch (WebApplicationException ex) {
             try {
                 HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
@@ -91,7 +91,7 @@ public class Session {
         }
     }
 
-    protected Session(AsyncContext asyncContext) {
+    protected SseSession(AsyncContext asyncContext) {
         this.LOCK = new ReentrantLock();
         asyncContext.setTimeout(-1);
         asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
@@ -128,7 +128,7 @@ public class Session {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Session other = (Session) obj;
+        final SseSession other = (SseSession) obj;
         if (!Objects.equals(this.asyncContext, other.asyncContext)) {
             return false;
         }

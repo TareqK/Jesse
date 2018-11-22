@@ -7,30 +7,30 @@ package me.busr.sse;
 
 import java.util.HashSet;
 
-public class DefaultSessionManager extends SessionManager {
+public class DefaultSessionManager extends SseSessionManager {
     
-    private static final HashSet<Session> SESSIONS = new HashSet();
+    private static final HashSet<SseSession> SESSIONS = new HashSet();
     
     public DefaultSessionManager() {
         
     }
     
     @Override
-    public void onClose(Session session) {
+    public void onClose(SseSession session) {
        SESSIONS.remove(session);
     }
     
     @Override
-    public void onOpen(Session session) {
+    public void onOpen(SseSession session) {
         SESSIONS.add(session);
     }
     
-    public static void broadcastEvent(Event event) {
+    public static void broadcastEvent(SseEvent event) {
         broadcastEvent(SESSIONS,event);
     }
 
     @Override
-    public void onError(Session session) {
+    public void onError(SseSession session) {
         SESSIONS.remove(session);
     }
     
