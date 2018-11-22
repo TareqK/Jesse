@@ -18,15 +18,22 @@
             <version>2.1.1</version>
             <type>jar</type>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>SSE-Servlet</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+    <distributionManagement>
+        <repository>
+            <id>busr-central</id>
+            <name>busr-staging-releases</name>
+            <url>https://artifactory.busr.me/artifactory/busr-dev</url>
+        </repository>
+        <snapshotRepository>
+            <id>busr-snapshots</id>
+            <name>busr-staging-snapshots</name>
+            <url>https://artifactory.busr.me/artifactory/busr-dev</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

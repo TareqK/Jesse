@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.busr.sseservlet;
+package me.busr.sse;
 
 import java.util.HashSet;
 
-public class DefaultSessionManager implements SessionManager {
+public class DefaultSessionManager extends SessionManager {
     
     private static final HashSet<Session> SESSIONS = new HashSet();
     
@@ -25,10 +25,8 @@ public class DefaultSessionManager implements SessionManager {
         SESSIONS.add(session);
     }
     
-    public static void broadcast(Event event) {
-        SESSIONS.forEach(consumer -> {
-            consumer.pushEvent(event);
-        });
+    public static void broadcastEvent(Event event) {
+        broadcastEvent(SESSIONS,event);
     }
     
     
