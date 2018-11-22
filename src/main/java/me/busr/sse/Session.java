@@ -51,7 +51,7 @@ public class Session {
                 outputStream.print(event.getString());
                 outputStream.flush();
             } catch (IOException | IllegalStateException ex) {
-                closeSession();
+                sessionManager.onError(this);
             } finally {
                 LOCK.unlock();
             }
@@ -66,6 +66,7 @@ public class Session {
                 HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
                 response.sendError(ex.getResponse().getStatus());
             } catch (IOException ex1) {
+                sessionManager.onError(this);
                 LOG.severe(ex1.getMessage());
             }
         } finally {
@@ -83,6 +84,7 @@ public class Session {
                 response.sendError(ex.getResponse().getStatus());
             } catch (IOException ex1) {
                 LOG.severe(ex1.getMessage());
+                sessionManager.onError(this);
             } finally {
                 closeSession();
             }
@@ -91,7 +93,7 @@ public class Session {
 
     protected Session(AsyncContext asyncContext) {
         this.LOCK = new ReentrantLock();
-        asyncContext.setTimeout(-33);
+        asyncContext.setTimeout(-1);
         asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
         asyncContext.getResponse().setCharacterEncoding("UTF-8");
         this.asyncContext = asyncContext;
@@ -132,6 +134,5 @@ public class Session {
         }
         return true;
     }
-    
 
 }

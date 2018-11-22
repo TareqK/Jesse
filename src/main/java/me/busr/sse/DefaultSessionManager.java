@@ -28,6 +28,11 @@ public class DefaultSessionManager extends SessionManager {
     public static void broadcastEvent(Event event) {
         broadcastEvent(SESSIONS,event);
     }
+
+    @Override
+    public void onError(Session session) {
+        SESSIONS.remove(session);
+    }
     
     
     

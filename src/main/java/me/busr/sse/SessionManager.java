@@ -60,4 +60,6 @@ public abstract class SessionManager {
     public abstract void onClose(Session session) throws WebApplicationException;
 
     public abstract void onOpen(Session session) throws WebApplicationException;
+    
+    public abstract void onError(Session session);
 }
