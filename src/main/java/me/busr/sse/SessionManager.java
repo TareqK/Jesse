@@ -9,49 +9,55 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.ws.rs.WebApplicationException;
 
 /**
  *
  * @author tareq
  */
 public abstract class SessionManager {
-   protected static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
+
+    protected static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
 
     public static void sendEvent(Session session, Event event) {
-        EXECUTOR.submit(()->{
-            session.pushEvent(event);
-        });
+        if (session != null && event != null) {
+            EXECUTOR.submit(() -> {
+                session.pushEvent(event);
+            });
+        }
     }
 
     public static void broadcastEvent(Session[] sessions, Event event) {
-        EXECUTOR.submit(()->{
-            for(Session session : sessions){
-            session.pushEvent(event);
-            }
-        });
+        if (sessions != null && event != null) {
+            EXECUTOR.submit(() -> {
+                for (Session session : sessions) {
+                    session.pushEvent(event);
+                }
+            });
+        }
     }
-    
+
     public static void broadcastEvent(Set<Session> sessions, Event event) {
-        EXECUTOR.submit(()->{
-            for(Session session : sessions){
-            session.pushEvent(event);
-            }
-        });
+        if (sessions != null && event != null) {
+            EXECUTOR.submit(() -> {
+                for (Session session : sessions) {
+                    session.pushEvent(event);
+                }
+            });
+        }
     }
 
-    
     public static void broadcastEvent(List<Session> sessions, Event event) {
-        EXECUTOR.submit(()->{
-            for(Session session : sessions){
-            session.pushEvent(event);
-            }
-        });
+        if (sessions != null && event != null) {
+            EXECUTOR.submit(() -> {
+                for (Session session : sessions) {
+                    session.pushEvent(event);
+                }
+            });
+        }
     }
-    public static void broadcastEvent(Event event) {
 
-    }
+    public abstract void onClose(Session session) throws WebApplicationException;
 
-    public abstract void onClose(Session session);
-
-    public abstract void onOpen(Session session);
+    public abstract void onOpen(Session session) throws WebApplicationException;
 }

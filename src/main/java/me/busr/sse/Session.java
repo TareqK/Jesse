@@ -6,6 +6,7 @@
 package me.busr.sse;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
@@ -14,6 +15,8 @@ import javax.servlet.AsyncContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -34,7 +37,7 @@ public class Session {
         this.sessionManager = sessionManager;
         this.LOCK = new ReentrantLock();
         this.asyncContext = asyncContext;
-        asyncContext.setTimeout(-33);
+        asyncContext.setTimeout(-1);
         asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
         asyncContext.getResponse().setCharacterEncoding("UTF-8");
         openSession();
@@ -56,13 +59,34 @@ public class Session {
     }
 
     public void closeSession() {
-        sessionManager.onClose(Session.this);
-        this.asyncContext.complete();
+        try {
+            sessionManager.onClose(Session.this);
+        } catch (WebApplicationException ex) {
+            try {
+                HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
+                response.sendError(ex.getResponse().getStatus());
+            } catch (IOException ex1) {
+                LOG.severe(ex1.getMessage());
+            }
+        } finally {
+            this.asyncContext.complete();
+        }
 
     }
 
     private void openSession() {
-        sessionManager.onOpen(Session.this);
+        try {
+            sessionManager.onOpen(Session.this);
+        } catch (WebApplicationException ex) {
+            try {
+                HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
+                response.sendError(ex.getResponse().getStatus());
+            } catch (IOException ex1) {
+                LOG.severe(ex1.getMessage());
+            } finally {
+                closeSession();
+            }
+        }
     }
 
     protected Session(AsyncContext asyncContext) {
@@ -83,4 +107,31 @@ public class Session {
         HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
         return r.getCookies();
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 47 * hash + Objects.hashCode(this.asyncContext);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Session other = (Session) obj;
+        if (!Objects.equals(this.asyncContext, other.asyncContext)) {
+            return false;
+        }
+        return true;
+    }
+    
+
 }
