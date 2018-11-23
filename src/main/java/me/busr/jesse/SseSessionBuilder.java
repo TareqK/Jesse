@@ -16,4 +16,8 @@ public class SseSessionBuilder {
     protected static SseSession buildSession(AsyncContext asyncContext, SseSessionManager manager) {
         return new SseSession(manager,asyncContext);
     }
+
+    static SseSession buildSession(AsyncContext asyncContext, SseSessionManager manager, boolean keepAlive) {
+        return new SseSession(manager,asyncContext,keepAlive);
+    }
 }

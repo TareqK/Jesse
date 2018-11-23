@@ -35,6 +35,7 @@ You need to add some entries into your web.xml
 If you would like to use your own implementation of the SseSessionManager, then you need to add the following init params to your servlet defenition
 
 ```xml
+
     <init-param >
         <param-name>me.busr.jesse.session.manager</param-name >
         <param-value>{Class name of session manager}</param-value >
@@ -42,9 +43,24 @@ If you would like to use your own implementation of the SseSessionManager, then 
 
 ```
 
+If you would like to use regular keep-alive, then you have to add this init parameter
+
+```xml
+
+    <init-param >
+        <param-name>me.busr.jesse.session.keepalive</param-name >
+        <param-value>true</param-value >
+    </init-param >
+
+```
+
+This will regularly send an event named "ping" with data "Keep-Alive" to all successfully connected clients every 2 minutes, which is especially helpful if you are using a reverse-proxy like nginx. 
+
+
 For example,this is a complete configuration with a custom session manager
 
 ```xml
+
     <servlet >
         <servlet-name> EventStream Endpoint </servlet-name>
         <servlet-class>me.busr.jesse.JesseServlet</servlet-class >
@@ -52,13 +68,18 @@ For example,this is a complete configuration with a custom session manager
             <param-name >me.busr.jesse.session.manager</param-name >
             <param-value>me.busr.core.sse.BusrSessionManager</param-value >
         </init-param>
-        <load-on-startup>1</load-on-startup>
-        <async-supported>true</async-supported>
+        <init-param >
+            <param-name>me.busr.jesse.session.keepalive</param-name >
+            <param-value>true</param-value >
+         </init-param >
+         <load-on-startup>1</load-on-startup>
+         <async-supported>true</async-supported>
     </servlet>
     <servlet-mapping>
         <servlet-name> EventStream Endpoint </servlet-name>
         <url-pattern>/event/*</url-pattern>
     </servlet-mapping>
+    
 ```
 
 And Thats it! you are now ready to go
@@ -82,7 +103,7 @@ Lets break this code down
 ``` DefaultSessionManager ``` is the default implementation of the session manager. It stores all active sessions in a list, and you can broadcast events to groups of sessions, individual sessions, or all sessions. 
 
 
-``` SseEventBuilder ``` is a utility class to build a new ``` SseEvent ```. ```event("test")``` sets the type of the event to "test", ```, ``` id(33) ``` sets the event id to "33",  retry(500) ``` sets the retry interval to 500ms, ``` data("WOOT AN EVENT") ``` sends "WOOT AN EVENT" as the event data, and ``` build() ``` creates the ``` SseEvent ``` based on the previous functions. The resulting event would be
+``` SseEventBuilder ``` is a utility class to build a new ``` SseEvent ```. ```event("test")``` sets the type of the event to "test", ``` id(33) ``` sets the event id to "33",  ``` retry(500) ``` sets the retry interval to 500ms, ``` data("WOOT AN EVENT") ``` sends "WOOT AN EVENT" as the event data, and ``` build() ``` creates the ``` SseEvent ``` based on the previous functions. The resulting event would be
 
 ```
 id: 33
