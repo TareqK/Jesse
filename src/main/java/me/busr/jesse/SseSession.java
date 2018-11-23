@@ -32,7 +32,8 @@ public class SseSession {
     private final ReentrantLock LOCK;
     private static final Logger LOG = Logger.getLogger(SseSession.class.getName());
 
-    private SseSessionManager sessionManager;
+    private final SseSessionManager sessionManager;
+    private final boolean keepAlive;
 
     protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
         this.sessionManager = sessionManager;
@@ -41,6 +42,18 @@ public class SseSession {
         asyncContext.setTimeout(-1);
         asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
         asyncContext.getResponse().setCharacterEncoding("UTF-8");
+        this.keepAlive = false;
+        openSession();
+    }
+
+    SseSession(SseSessionManager sessionManager, AsyncContext asyncContext, boolean keepAlive) {
+        this.sessionManager = sessionManager;
+        this.LOCK = new ReentrantLock();
+        this.asyncContext = asyncContext;
+        asyncContext.setTimeout(-1);
+        asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
+        asyncContext.getResponse().setCharacterEncoding("UTF-8");
+        this.keepAlive = keepAlive;
         openSession();
     }
 
@@ -81,6 +94,9 @@ public class SseSession {
             }
         } finally {
             this.asyncContext.complete();
+            if (this.keepAlive == true) {
+                SseSessionKeepAlive.removeSession(this);
+            }
         }
 
     }
@@ -88,6 +104,9 @@ public class SseSession {
     private void openSession() {
         try {
             sessionManager.onOpen(this);
+            if (this.keepAlive == true) {
+                SseSessionKeepAlive.addSession(this);
+            }
         } catch (WebApplicationException ex) {
             try {
                 HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
@@ -97,22 +116,11 @@ public class SseSession {
                 LOG.severe(ex1.getMessage());
             } finally {
                 this.asyncContext.complete();
+                if (this.keepAlive == true) {
+                    SseSessionKeepAlive.removeSession(this);
+                }
             }
         }
-    }
-
-    /**
-     * Create a new SseSession without a sessionManager
-     *
-     * @param asyncContext
-     */
-    protected SseSession(AsyncContext asyncContext) {
-        this.LOCK = new ReentrantLock();
-        asyncContext.setTimeout(-1);
-        asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
-        asyncContext.getResponse().setCharacterEncoding("UTF-8");
-        this.asyncContext = asyncContext;
-        openSession();
     }
 
     /**
