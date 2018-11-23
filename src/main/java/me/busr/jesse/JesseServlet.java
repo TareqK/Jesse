@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.busr.sse;
+package me.busr.jesse;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -20,9 +20,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author tareq
  */
-public class EventStreamServlet extends HttpServlet {
+public class JesseServlet extends HttpServlet {
 
-    private static final Logger LOG = Logger.getLogger(EventStreamServlet.class.getName());
+    private static final Logger LOG = Logger.getLogger(JesseServlet.class.getName());
     private static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
 
     SseSessionManager manager = new DefaultSessionManager();
@@ -31,14 +31,14 @@ public class EventStreamServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         AsyncContext asyncContext = request.startAsync();
         EXECUTOR.submit(() -> {
-            new SseSession(manager, asyncContext);
+            SseSessionBuilder.buildSession(asyncContext, manager);
         });
     }
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        String sessionManagerClassName = getServletConfig().getInitParameter("me.busr.sse.session.manager");
+        String sessionManagerClassName = getServletConfig().getInitParameter("me.busr.jesse.session.manager");
         try {
             Class<?> sessionManagerClass = Class.forName(sessionManagerClassName);
             SseSessionManager sessionManager = (SseSessionManager) sessionManagerClass.newInstance();

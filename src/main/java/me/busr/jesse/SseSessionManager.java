@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.busr.sse;
+package me.busr.jesse;
 
 import java.util.List;
 import java.util.Set;
@@ -17,6 +17,7 @@ import javax.ws.rs.WebApplicationException;
  */
 public abstract class SseSessionManager {
 
+    
     /**
      * The thread pool that handles dispatching events
      */
@@ -35,6 +36,7 @@ public abstract class SseSessionManager {
         }
     }
 
+    
     /**
      * Broadcast an event to an array of sessions
      * @param sessions

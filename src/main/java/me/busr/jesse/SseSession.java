@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.busr.sse;
+package me.busr.jesse;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  *
@@ -33,7 +34,7 @@ public class SseSession {
 
     private SseSessionManager sessionManager;
 
-    SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
+    protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
         this.sessionManager = sessionManager;
         this.LOCK = new ReentrantLock();
         this.asyncContext = asyncContext;
@@ -45,6 +46,7 @@ public class SseSession {
 
     /**
      * Pushes an event to this SseSession
+     *
      * @param event
      */
     public void pushEvent(SseEvent event) {
@@ -54,8 +56,9 @@ public class SseSession {
                 ServletOutputStream outputStream = asyncContext.getResponse().getOutputStream();
                 outputStream.print(event.getString());
                 outputStream.flush();
-            } catch (IOException | IllegalStateException ex) {
+            } catch (IOException | NullPointerException | IllegalStateException ex) {
                 sessionManager.onError(this);
+                closeSession();
             } finally {
                 LOCK.unlock();
             }
@@ -67,13 +70,13 @@ public class SseSession {
      */
     public void closeSession() {
         try {
-            sessionManager.onClose(SseSession.this);
+            sessionManager.onClose(this);
         } catch (WebApplicationException ex) {
             try {
                 HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
                 response.sendError(ex.getResponse().getStatus());
-            } catch (IOException ex1) {
-                sessionManager.onError(this);
+                response.flushBuffer();
+            } catch (IOException | ClassCastException | NullPointerException | IllegalStateException ex1) {
                 LOG.severe(ex1.getMessage());
             }
         } finally {
@@ -84,22 +87,23 @@ public class SseSession {
 
     private void openSession() {
         try {
-            sessionManager.onOpen(SseSession.this);
+            sessionManager.onOpen(this);
         } catch (WebApplicationException ex) {
             try {
                 HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
                 response.sendError(ex.getResponse().getStatus());
-            } catch (IOException ex1) {
+                response.flushBuffer();
+            } catch (IOException | ClassCastException | NullPointerException | IllegalStateException ex1) {
                 LOG.severe(ex1.getMessage());
-                sessionManager.onError(this);
             } finally {
-                closeSession();
+                this.asyncContext.complete();
             }
         }
     }
 
     /**
      * Create a new SseSession without a sessionManager
+     *
      * @param asyncContext
      */
     protected SseSession(AsyncContext asyncContext) {
@@ -113,11 +117,17 @@ public class SseSession {
 
     /**
      * Get the SseSession cookies
+     *
      * @return the Session Cookies
      */
-    public Cookie[] getCookies() {
-        HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
-        return r.getCookies();
+    public Cookie[] getCookies() throws WebApplicationException {
+        try {
+            HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
+            return r.getCookies();
+        } catch (ClassCastException | NullPointerException | IllegalStateException ex) {
+            LOG.severe(ex.getMessage());
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -126,22 +136,30 @@ public class SseSession {
      * @return the cookie, if found
      * @throws WebApplicationException if the cookie is not found
      */
-    public Cookie getCookie(String cookieName) throws WebApplicationException{
-        HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
-        for(Cookie cookie : r.getCookies()){
-            if(cookie.getName().equals(cookieName)){
-                return cookie;
+    public Cookie getCookie(String cookieName) throws WebApplicationException {
+        try {
+            HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
+            Cookie[] cookies = r.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals(cookieName)) {
+                        return cookie;
+                    }
+                }
             }
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        } catch (ClassCastException | NullPointerException | IllegalStateException ex) {
+            LOG.severe(ex.getMessage());
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
-        throw new WebApplicationException(400);
     }
-    
+
     /**
      *
      * @param cookieName the cookie we are searching for
      * @return the value field of the cookie
      */
-    public String getCookieValue(String cookieName){
+    public String getCookieValue(String cookieName) throws WebApplicationException {
         return getCookie(cookieName).getValue();
     }
 
@@ -177,6 +195,11 @@ public class SseSession {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "SseSession{" + "asyncContext=" + asyncContext + '}';
     }
 
 }
