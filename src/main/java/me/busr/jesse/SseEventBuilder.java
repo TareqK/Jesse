@@ -3,45 +3,71 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.busr.sse;
+package me.busr.jesse;
 
 /**
  *
  * @author tareq
  */
-public class EventBuilder {
+public class SseEventBuilder {
     
     private Object data;
     private String event;
     private String id;
     private String retry;
     
-    public EventBuilder(){
+    /**
+     * Creates a new event builder
+     */
+    public SseEventBuilder(){
         
     }
     
-    public EventBuilder data(String data){
+    /**
+     * Adds data to the event
+     * @param data
+     * @return
+     */
+    public SseEventBuilder data(String data){
         this.data = data;
         return this;
     }
     
-    public EventBuilder event(String event){
+    /**
+     * Adds the event type
+     * @param event
+     * @return
+     */
+    public SseEventBuilder event(String event){
         this.event = String.valueOf(event);
         return this;
     }
     
-    public EventBuilder id(Object id){
+    /**
+     * Adds the event id
+     * @param id
+     * @return
+     */
+    public SseEventBuilder id(Object id){
         this.id = String.valueOf(id);
         return this;
     }
     
-    public EventBuilder retry(long retry){
+    /**
+     * Adds the retry interval
+     * @param retry
+     * @return
+     */
+    public SseEventBuilder retry(long retry){
         this.retry = String.valueOf(retry);
         return this;
     }
     
-    
-    public Event build(){
+    /**
+     * Builds the event
+     * @return
+     */
+    public SseEvent build(){
         StringBuilder builder = new StringBuilder();
         if(this.id != null){
             builder.append("id: ").append(id).append("\n");
@@ -56,6 +82,6 @@ public class EventBuilder {
             builder.append("data: ").append(data);
         }
         builder.append("\n\n");
-        return new Event(builder.toString());
+        return new SseEvent(builder.toString());
     }
 }

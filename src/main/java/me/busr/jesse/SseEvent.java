@@ -3,17 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.busr.sse;
+package me.busr.jesse;
 
 /**
  *
  * @author tareq
  */
-public class Event {
+public class SseEvent {
 
     private final String eventString;
     
-    protected Event(String eventString) {
+    protected SseEvent(String eventString) {
         this.eventString  = eventString;
     }
 
