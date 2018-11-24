@@ -21,7 +21,7 @@ public abstract class SseSessionManager {
     /**
      * The thread pool that handles dispatching events
      */
-    protected static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
+    protected static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
 
     /**
      * Sends an event to a session
@@ -101,4 +101,5 @@ public abstract class SseSessionManager {
      * @param session
      */
     public abstract void onError(SseSession session);
+
 }

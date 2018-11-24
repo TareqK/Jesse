@@ -26,10 +26,10 @@ import javax.ws.rs.core.Response;
  */
 public class SseSession {
 
-    private static final ExecutorService EXECUTOR = Executors.newScheduledThreadPool(15);
+    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
     private final AsyncContext asyncContext;
 
-    private final ReentrantLock LOCK;
+    private final ReentrantLock lock;
     private static final Logger LOG = Logger.getLogger(SseSession.class.getName());
 
     private final SseSessionManager sessionManager;
@@ -37,7 +37,7 @@ public class SseSession {
 
     protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
         this.sessionManager = sessionManager;
-        this.LOCK = new ReentrantLock();
+        this.lock = new ReentrantLock();
         this.asyncContext = asyncContext;
         asyncContext.setTimeout(-1);
         asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
@@ -48,7 +48,7 @@ public class SseSession {
 
     SseSession(SseSessionManager sessionManager, AsyncContext asyncContext, boolean keepAlive) {
         this.sessionManager = sessionManager;
-        this.LOCK = new ReentrantLock();
+        this.lock = new ReentrantLock();
         this.asyncContext = asyncContext;
         asyncContext.setTimeout(-1);
         asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
@@ -57,25 +57,53 @@ public class SseSession {
         openSession();
     }
 
+    private void removeKeepAlive() {
+        if (this.keepAlive == true) {
+            SseSessionKeepAlive.removeSession(this);
+        }
+    }
+
+    private void addKeepAlive() {
+        if (this.keepAlive == true) {
+            SseSessionKeepAlive.addSession(this);
+        }
+    }
+
     /**
      * Pushes an event to this SseSession
      *
      * @param event
      */
     public void pushEvent(SseEvent event) {
-        EXECUTOR.submit(() -> {
-            LOCK.lock();
-            try {
-                ServletOutputStream outputStream = asyncContext.getResponse().getOutputStream();
-                outputStream.print(event.getString());
-                outputStream.flush();
-            } catch (IOException | NullPointerException | IllegalStateException ex) {
-                sessionManager.onError(this);
-                closeSession();
-            } finally {
-                LOCK.unlock();
+        EXECUTOR.submit(new Runnable() {
+            @Override
+            public void run() {
+                lock.lock();
+                try {
+                    if (event != null) {
+                        ServletOutputStream outputStream = asyncContext.getResponse().getOutputStream();
+                        outputStream.print(event.getString());
+                        outputStream.flush();
+                    }
+                } catch (IOException ex) {
+                    closeSession();
+                } catch (NullPointerException | IllegalStateException ex) {
+                    sessionError(ex);
+                } catch(Throwable ex){
+                    LOG.severe(ex.getMessage());
+                }finally {
+                    lock.unlock();
+                }
             }
         });
+    }
+
+    private void sessionError(Throwable ex) {
+        LOG.severe(ex.getMessage());
+        removeKeepAlive();
+        this.asyncContext.complete();
+        sessionManager.onError(this);
+
     }
 
     /**
@@ -90,13 +118,10 @@ public class SseSession {
                 response.sendError(ex.getResponse().getStatus());
                 response.flushBuffer();
             } catch (IOException | ClassCastException | NullPointerException | IllegalStateException ex1) {
-                LOG.severe(ex1.getMessage());
             }
         } finally {
+            removeKeepAlive();
             this.asyncContext.complete();
-            if (this.keepAlive == true) {
-                SseSessionKeepAlive.removeSession(this);
-            }
         }
 
     }
@@ -104,21 +129,17 @@ public class SseSession {
     private void openSession() {
         try {
             sessionManager.onOpen(this);
-            if (this.keepAlive == true) {
-                SseSessionKeepAlive.addSession(this);
-            }
+            addKeepAlive();
         } catch (WebApplicationException ex) {
             try {
                 HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
                 response.sendError(ex.getResponse().getStatus());
                 response.flushBuffer();
             } catch (IOException | ClassCastException | NullPointerException | IllegalStateException ex1) {
-                LOG.severe(ex1.getMessage());
+
             } finally {
+                removeKeepAlive();
                 this.asyncContext.complete();
-                if (this.keepAlive == true) {
-                    SseSessionKeepAlive.removeSession(this);
-                }
             }
         }
     }
@@ -133,7 +154,6 @@ public class SseSession {
             HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
             return r.getCookies();
         } catch (ClassCastException | NullPointerException | IllegalStateException ex) {
-            LOG.severe(ex.getMessage());
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -199,10 +219,7 @@ public class SseSession {
             return false;
         }
         final SseSession other = (SseSession) obj;
-        if (!Objects.equals(this.asyncContext, other.asyncContext)) {
-            return false;
-        }
-        return true;
+        return this.asyncContext.equals(other.asyncContext);
     }
 
     @Override

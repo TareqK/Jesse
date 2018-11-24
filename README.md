@@ -48,11 +48,36 @@ If you would like to use regular keep-alive, then you have to add this init para
 ```xml
 
     <init-param >
-        <param-name>me.busr.jesse.session.keepalive</param-name >
-        <param-value>true</param-value >
+        <param-name>me.busr.jesse.session.keepalive.enabled</param-name >
+        <param-value>{true/false}</param-value >
     </init-param >
 
 ```
+
+You can also set the interval for the Keep-Alive, by using this paramter
+
+```xml
+
+    <init-param >
+        <param-name>me.busr.jesse.session.keepalive.interval</param-name >
+        <param-value>{interval in secconds}</param-value >
+    </init-param >
+
+```
+
+You can also specify the domains that are allowed to access the event stream, by setting this parameter. Otherwise, it defaults to the domain that made the request(effectively all domains)
+
+
+```xml
+
+    <init-param >
+        <param-name>me.busr.jesse.session.domains</param-name >
+        <param-value>{comma,separated,domain,names}</param-value >
+    </init-param >
+
+```
+
+
 
 This will regularly send an event named "ping" with data "Keep-Alive" to all successfully connected clients every 2 minutes, which is especially helpful if you are using a reverse-proxy like nginx. 
 
@@ -69,7 +94,7 @@ For example,this is a complete configuration with a custom session manager
             <param-value>me.busr.core.sse.BusrSessionManager</param-value >
         </init-param>
         <init-param >
-            <param-name>me.busr.jesse.session.keepalive</param-name >
+            <param-name>me.busr.jesse.session.keepalive.enabled</param-name >
             <param-value>true</param-value >
          </init-param >
          <load-on-startup>1</load-on-startup>
@@ -89,7 +114,7 @@ And Thats it! you are now ready to go
 
 ```java
 
- DefaultSessionEvent.broadcastAll(new SseEventBuilder()
+ DefaultSessionManager.broadcastAll(new SseEventBuilder()
                             .event("test")
                             .id(33)
                             .retry(500)
