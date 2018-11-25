@@ -16,6 +16,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import me.busr.jesse.feature.MapperFeature;
 
 /**
  *
@@ -47,9 +48,7 @@ public class JesseServlet extends HttpServlet {
 
         });
     }
-    
-    
-    
+
     @Override
     protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         AsyncContext asyncContext = request.startAsync();
@@ -65,26 +64,25 @@ public class JesseServlet extends HttpServlet {
         asyncContextResponse.flushBuffer();
         asyncContext.complete();
     }
-    
-
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        String sessionManagerClassName = getServletConfig().getInitParameter("me.busr.jesse.session.manager");
+        String sessionManagerClassNameParameter = getServletConfig().getInitParameter("me.busr.jesse.session.manager");
         String domainInitParameter = getServletConfig().getInitParameter("me.busr.jesse.session.domains");
         String keepAliveParameter = getServletConfig().getInitParameter("me.busr.jesse.session.keepalive.enabled");
-        String keepAliveTimer = getServletConfig().getInitParameter("me.busr.jesse.session.keepalive.interval");
+        String keepAliveTimerParameter = getServletConfig().getInitParameter("me.busr.jesse.session.keepalive.interval");
+        String mapperFeaturesParameter = getServletConfig().getInitParameter("me.busr.jesse.feature");
         if (domainInitParameter != null) {
             this.domain = domainInitParameter;
         }
         if (keepAliveParameter != null && keepAliveParameter.equals("true")) {
-            if(keepAliveTimer!=null){
-                try{
-                    long interval = Long.parseLong(keepAliveTimer.trim());
+            if (keepAliveTimerParameter != null) {
+                try {
+                    long interval = Long.parseLong(keepAliveTimerParameter.trim());
                     SseSessionKeepAlive.setInterval(interval);
                     LOG.info("Set the Keep-Alive interval to ".concat(String.valueOf(interval)).concat(" seconds"));
-                }catch(Exception ex){
+                } catch (Exception ex) {
                     LOG.severe(ex.getMessage());
                     LOG.info("Defaulting to Keep-Alive interval of 120 seconds");
                 }
@@ -93,13 +91,36 @@ public class JesseServlet extends HttpServlet {
             this.keepAlive = true;
         }
         try {
-            Class<?> sessionManagerClass = Class.forName(sessionManagerClassName);
+            Class<?> sessionManagerClass = Class.forName(sessionManagerClassNameParameter);
             SseSessionManager sessionManager = (SseSessionManager) sessionManagerClass.newInstance();
             this.manager = sessionManager;
             LOG.info("using ".concat(sessionManagerClass.getCanonicalName()).concat(" as session manager"));
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NullPointerException ex) {
             LOG.warning(ex.getMessage().concat(" defaulting to built in session manager"));
         }
+
+        if (mapperFeaturesParameter != null) {
+            if (mapperFeaturesParameter.contains(",")) {
+                String[] features = mapperFeaturesParameter.split(",");
+                for (String feature : features) {
+                    addFeature(feature);
+                }
+            }
+            else{
+                addFeature(mapperFeaturesParameter);
+            }
+        }
     }
 
+    public void addFeature(String featureClassName) {
+        Class<?> mapperFeatureClass;
+        try {
+            mapperFeatureClass = Class.forName(featureClassName);
+            MapperFeature mapperFeature = (MapperFeature) mapperFeatureClass.newInstance();
+            SseEventBuilder.addMapper(mapperFeature);
+            LOG.info("using ".concat(mapperFeatureClass.getCanonicalName()));
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NullPointerException ex) {
+            LOG.warning(ex.getMessage());
+        }
+    }
 }
