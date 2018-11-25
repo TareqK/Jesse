@@ -77,12 +77,19 @@ You can also specify the domains that are allowed to access the event stream, by
 
 ```
 
+Aditionally, you can add mappers for MediaTypes, by adding this to the web.xml
 
+```xml
 
-This will regularly send an event named "ping" with data "Keep-Alive" to all successfully connected clients every 2 minutes, which is especially helpful if you are using a reverse-proxy like nginx. 
+    <init-param>
+        <param-name>me.busr.jesse.feature</param-name>
+        <param-value>{comma,seperated,features,class,names}</param-value>
+    </init-param>
+    
+```
+You can add your own custom mappers by implementing the ```MapperFeature``` interface.
 
-
-For example,this is a complete configuration with a custom session manager
+For example,this is a complete configuration with a custom session manager and the Jackson Mapper
 
 ```xml
 
@@ -97,6 +104,10 @@ For example,this is a complete configuration with a custom session manager
             <param-name>me.busr.jesse.session.keepalive.enabled</param-name >
             <param-value>true</param-value >
          </init-param >
+         <init-param>
+            <param-name>me.busr.jesse.feature</param-name>
+            <param-value>me.busr.jesse.feature.JacksonMapperFeature</param-value>
+        </init-param>
          <load-on-startup>1</load-on-startup>
          <async-supported>true</async-supported>
     </servlet>
@@ -118,7 +129,8 @@ And Thats it! you are now ready to go
                             .event("test")
                             .id(33)
                             .retry(500)
-                            .data("WOOT AN EVENT")
+                            .mediaType(MediaType.APPLICATION_JSON)
+                            .data(notificationData)
                             .build())
 
 ```
@@ -128,13 +140,13 @@ Lets break this code down
 ``` DefaultSessionManager ``` is the default implementation of the session manager. It stores all active sessions in a list, and you can broadcast events to groups of sessions, individual sessions, or all sessions. 
 
 
-``` SseEventBuilder ``` is a utility class to build a new ``` SseEvent ```. ```event("test")``` sets the type of the event to "test", ``` id(33) ``` sets the event id to "33",  ``` retry(500) ``` sets the retry interval to 500ms, ``` data("WOOT AN EVENT") ``` sends "WOOT AN EVENT" as the event data, and ``` build() ``` creates the ``` SseEvent ``` based on the previous functions. The resulting event would be
+``` SseEventBuilder ``` is a utility class to build a new ``` SseEvent ```. ```event("test")``` sets the type of the event to "test", ```mediaType(MediaType.APPLICATION_JSON)``` sets the media type to JSON,  ``` id(33) ``` sets the event id to "33",  ``` retry(500) ``` sets the retry interval to 500ms, ``` data("WOOT AN EVENT") ``` sends notification as the event data, and ``` build() ``` creates the ``` SseEvent ``` based on the previous functions. The resulting event would be
 
 ```
 id: 33
 event: test
 retry: 500
-data: WOOT AN EVENT
+data:  {"parameter1":"value1","parameter2":"value2",.....,"parametern":"valuen"}
 
 ```
 

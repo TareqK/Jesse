@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 class SseSessionKeepAlive {
 
-    private static final ScheduledExecutorService PING_SERVICE = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService KEEPALIVE_SERVIE = Executors.newScheduledThreadPool(1);
     private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
     private static long interval = 120;
     private static volatile Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
@@ -31,7 +31,7 @@ class SseSessionKeepAlive {
         SESSIONS.remove(session);
     }
 
-    private static class PingRunner implements Runnable {
+    private static class KeepaliveRunner implements Runnable {
         @Override
         public void run() {
             SESSIONS.forEach(session -> {
@@ -45,7 +45,7 @@ class SseSessionKeepAlive {
 
   protected static void start(){
     
-      PING_SERVICE.scheduleAtFixedRate(new PingRunner(), 0, interval, TimeUnit.SECONDS);
+      KEEPALIVE_SERVIE.scheduleAtFixedRate(new KeepaliveRunner(), 0, interval, TimeUnit.SECONDS);
       LOG.info("Using session Keep-Alive");
   }
   

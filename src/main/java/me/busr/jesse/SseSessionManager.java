@@ -28,7 +28,7 @@ public abstract class SseSessionManager {
      * @param session
      * @param event
      */
-    public static void sendEvent(SseSession session, SseEvent event) {
+    public static void pushEvent(SseSession session, SseEvent event) {
         if (session != null && event != null) {
             EXECUTOR.submit(() -> {
                 session.pushEvent(event);

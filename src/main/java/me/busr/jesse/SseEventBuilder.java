@@ -5,6 +5,12 @@
  */
 package me.busr.jesse;
 
+import java.util.HashMap;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import me.busr.jesse.feature.PlainTextMapperFeature;
+import me.busr.jesse.feature.MapperFeature;
+
 /**
  *
  * @author tareq
@@ -15,7 +21,11 @@ public class SseEventBuilder {
     private String event;
     private String id;
     private String retry;
-    
+    private MediaType mediaType = MediaType.TEXT_PLAIN_TYPE;
+    private static final HashMap<MediaType,MapperFeature> MAPPER_MAP = new HashMap();
+    static{
+        MAPPER_MAP.put(MediaType.TEXT_PLAIN_TYPE, new PlainTextMapperFeature());        
+    }
     /**
      * Creates a new event builder
      */
@@ -28,7 +38,7 @@ public class SseEventBuilder {
      * @param data
      * @return
      */
-    public SseEventBuilder data(String data){
+    public SseEventBuilder data(Object data){
         this.data = data;
         return this;
     }
@@ -63,11 +73,16 @@ public class SseEventBuilder {
         return this;
     }
     
+    public SseEventBuilder mediaType(String mediaType){
+        this.mediaType = MediaType.valueOf(mediaType);
+        return this;
+    }
+    
     /**
      * Builds the event
      * @return
      */
-    public SseEvent build(){
+    public SseEvent build() throws WebApplicationException{
         StringBuilder builder = new StringBuilder();
         if(this.id != null){
             builder.append("id: ").append(id).append("\n");
@@ -79,9 +94,18 @@ public class SseEventBuilder {
             builder.append("retry: ").append(retry).append("\n");
         }
         if(this.data != null){
-            builder.append("data: ").append(data);
+            builder.append("data: ").append(MAPPER_MAP.get(this.mediaType).serialize(this.data));
         }
         builder.append("\n\n");
         return new SseEvent(builder.toString());
     }
+    
+    protected static final void addMapper(MapperFeature mapper){
+        MAPPER_MAP.put(mapper.getMediaType(), mapper);
+    }
+    
+   private String writeAsString(Object data, MediaType mediaType) throws WebApplicationException{
+        MapperFeature mapper = MAPPER_MAP.getOrDefault(mediaType, new PlainTextMapperFeature());
+        return mapper.serialize(data);
+   }
 }
