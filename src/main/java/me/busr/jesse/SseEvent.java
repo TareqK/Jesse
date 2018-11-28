@@ -21,4 +21,8 @@ public class SseEvent {
         return eventString;
     }
     
+    public static final SseEventBuilder getBuilder(){
+        return new SseEventBuilder();
+    }
+    
 }
