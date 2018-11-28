@@ -125,7 +125,7 @@ And Thats it! you are now ready to go
 
 ```java
 
- DefaultSessionManager.broadcastAll(new SseEventBuilder()
+ DefaultSessionManager.broadcastAll(SseEvent.getBuilder()
                             .event("test")
                             .id(33)
                             .retry(500)
