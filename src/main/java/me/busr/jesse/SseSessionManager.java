@@ -21,8 +21,11 @@ public abstract class SseSessionManager {
     /**
      * The thread pool that handles dispatching events
      */
-    protected static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
 
+    public static final ExecutorService getExecutor(){
+        return EXECUTOR;
+    }
     /**
      * Sends an event to a session
      * @param session
@@ -30,7 +33,7 @@ public abstract class SseSessionManager {
      */
     public static void pushEvent(SseSession session, SseEvent event) {
         if (session != null && event != null) {
-            EXECUTOR.submit(() -> {
+            getExecutor().submit(() -> {
                 session.pushEvent(event);
             });
         }
@@ -44,7 +47,7 @@ public abstract class SseSessionManager {
      */
     public static void broadcastEvent(SseSession[] sessions, SseEvent event) {
         if (sessions != null && event != null) {
-            EXECUTOR.submit(() -> {
+            getExecutor().submit(() -> {
                 for (SseSession session : sessions) {
                     session.pushEvent(event);
                 }
@@ -59,10 +62,10 @@ public abstract class SseSessionManager {
      */
     public static void broadcastEvent(Set<SseSession> sessions, SseEvent event) {
         if (sessions != null && event != null) {
-            EXECUTOR.submit(() -> {
-                for (SseSession session : sessions) {
+            getExecutor().submit(() -> {
+                sessions.forEach((session) -> {
                     session.pushEvent(event);
-                }
+                });
             });
         }
     }
@@ -74,10 +77,10 @@ public abstract class SseSessionManager {
      */
     public static void broadcastEvent(List<SseSession> sessions, SseEvent event) {
         if (sessions != null && event != null) {
-            EXECUTOR.submit(() -> {
-                for (SseSession session : sessions) {
+            getExecutor().submit(() -> {
+                sessions.forEach((session) -> {
                     session.pushEvent(event);
-                }
+                });
             });
         }
     }
