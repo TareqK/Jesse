@@ -7,5 +7,8 @@
                 <goal>jar:jar</goal>
                 <goal>deploy:deploy</goal>
             </goals>
+            <activatedProfiles>
+                <activatedProfile>ossrh</activatedProfile>
+            </activatedProfiles>
         </action>
     </actions>
