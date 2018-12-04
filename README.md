@@ -12,8 +12,14 @@ Jesse stands for **J**ava **E**nterprise **S**erver **S**ide **E**vents. It is a
 
 ## Adding It to your project
 
-Im not on maven central yet, for now download and build yourself and add the jar and JavaEE api version 7 to your project
+Add This to your dependencies : 
 
+```xml
+    <dependency>
+        <groupId>me.busr</groupId>
+        <artifactId>jesse</artifactId>
+     </dependency>
+```
 ## Setup
 You need to add some entries into your web.xml 
 
@@ -140,7 +146,7 @@ Lets break this code down
 ``` DefaultSessionManager ``` is the default implementation of the session manager. It stores all active sessions in a list, and you can broadcast events to groups of sessions, individual sessions, or all sessions. 
 
 
-``` SseEventBuilder ``` is a utility class to build a new ``` SseEvent ```. ```event("test")``` sets the type of the event to "test", ```mediaType(MediaType.APPLICATION_JSON)``` sets the media type to JSON,  ``` id(33) ``` sets the event id to "33",  ``` retry(500) ``` sets the retry interval to 500ms, ``` data("WOOT AN EVENT") ``` sends notification as the event data, and ``` build() ``` creates the ``` SseEvent ``` based on the previous functions. The resulting event would be
+``` SseEventBuilder ``` is a utility class to build a new ``` SseEvent ```. ```event("test")``` sets the type of the event to "test", ```mediaType(MediaType.APPLICATION_JSON)``` sets the media type to JSON,  ``` id(33) ``` sets the event id to "33",  ``` retry(500) ``` sets the retry interval to 500ms, ``` data(notificationData) ``` sends notification as the event data, and ``` build() ``` creates the ``` SseEvent ``` based on the previous functions. The resulting event would be
 
 ```
 id: 33
