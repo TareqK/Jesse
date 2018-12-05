@@ -13,10 +13,23 @@ import javax.servlet.AsyncContext;
  */
 public class SseSessionBuilder {
 
+    /**
+     * Build a session without keepalive
+     * @param asyncContext
+     * @param manager
+     * @return
+     */
     protected static SseSession buildSession(AsyncContext asyncContext, SseSessionManager manager) {
         return new SseSession(manager,asyncContext);
     }
 
+    /**
+     * Build a session with a keep alive param
+     * @param asyncContext
+     * @param manager
+     * @param keepAlive
+     * @return
+     */
     protected static SseSession buildSession(AsyncContext asyncContext, SseSessionManager manager, boolean keepAlive) {
         return new SseSession(manager,asyncContext,keepAlive);
     }

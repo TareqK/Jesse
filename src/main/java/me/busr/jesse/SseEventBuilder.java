@@ -119,8 +119,4 @@ public class SseEventBuilder {
         MAPPER_MAP.put(mapper.getMediaType(), mapper);
     }
 
-    private String writeAsString(Object data, MediaType mediaType) throws WebApplicationException {
-        MapperFeature mapper = MAPPER_MAP.getOrDefault(mediaType, new PlainTextMapperFeature());
-        return mapper.serialize(data);
-    }
 }

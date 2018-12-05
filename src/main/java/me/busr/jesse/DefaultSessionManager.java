@@ -7,10 +7,17 @@ package me.busr.jesse;
 
 import java.util.HashSet;
 
+/**
+ *
+ * @author tareq
+ */
 public class DefaultSessionManager extends SseSessionManager {
     
     private static final HashSet<SseSession> SESSIONS = new HashSet();
     
+    /**
+     * The Default implementation of the session manager which simply stores sessions in a hashset
+     */
     public DefaultSessionManager() {
         
     }
@@ -25,6 +32,10 @@ public class DefaultSessionManager extends SseSessionManager {
         SESSIONS.add(session);
     }
     
+    /**
+     * send an event to all sessions
+     * @param event
+     */
     public static void broadcastEvent(SseEvent event) {
         broadcastEvent(SESSIONS,event);
     }
