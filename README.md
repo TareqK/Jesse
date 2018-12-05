@@ -2,12 +2,6 @@
 
 Jesse stands for **J**ava **E**nterprise **S**erver **S**ide **E**vents. It is a framework built using JEE APIs to provide server-side event capability in a JEE web application.
 
-# Motivation
-
-"But JAX-RS already has Sse", I hear you say, and well, you are right, but it has a few caveats that I couldnt get around and didnt fit in with an application I was building.
-
- You see, the thing is that JAX-RS Sse depends a lot on context injection(and by depends a lot I mean doesnt work without it), which is a headache I prefer to avoid if i can. It was also really difficult to use with external threads(which i needed to implement some specific, periodically ocurring database operations that users needed to be notified about). So I decided to build my own Sse Framework, based on JavaEE APIs. 
-
 # Getting Started
 
 ## Adding It to your project
@@ -15,10 +9,12 @@ Jesse stands for **J**ava **E**nterprise **S**erver **S**ide **E**vents. It is a
 Add This to your dependencies : 
 
 ```xml
+
     <dependency>
         <groupId>me.busr</groupId>
         <artifactId>jesse</artifactId>
-     </dependency>
+    </dependency>
+
 ```
 ## Setup
 You need to add some entries into your web.xml 
@@ -126,7 +122,8 @@ For example,this is a complete configuration with a custom session manager and t
 
 And Thats it! you are now ready to go
 
-# Useage
+# Usage
+
 ## Sending Sse Events
 
 ```java
@@ -143,7 +140,8 @@ And Thats it! you are now ready to go
 
 Lets break this code down 
 
-``` DefaultSessionManager ``` is the default implementation of the session manager. It stores all active sessions in a list, and you can broadcast events to groups of sessions, individual sessions, or all sessions. 
+``` DefaultSessionManager ``` is the default implementation of the session manager, which is used by default if no custom SessionManager is provided. 
+It stores all active sessions in a list, and you can broadcast events to groups of sessions, individual sessions, or all sessions. 
 
 
 ``` SseEventBuilder ``` is a utility class to build a new ``` SseEvent ```. ```event("test")``` sets the type of the event to "test", ```mediaType(MediaType.APPLICATION_JSON)``` sets the media type to JSON,  ``` id(33) ``` sets the event id to "33",  ``` retry(500) ``` sets the retry interval to 500ms, ``` data(notificationData) ``` sends notification as the event data, and ``` build() ``` creates the ``` SseEvent ``` based on the previous functions. The resulting event would be
@@ -168,6 +166,20 @@ The following methods are mandatory to implement
 ``` onClose(SseSession sseSession) throws WebApplicationExceptoion ``` : This method is called when a session is being closed. ``` WebApplicationException ``` will terminate this session with the corrseponding Http Response code.
 
 ``` onError(SseSession sseSession)``` : This method is called if there is a transport error(The session has been closed for example, or some internal server error). I reccomend you use this to remove the session from your sessions list/map/whatever you are storing the sessions in.
+
+
+## Custom Feature Mapping
+
+a custom feature mapper can be created by implementing the ```MapperFeature``` interface. As a note, feature registration is global for Jesse, meaning that all your SseSessions will use the same mapper modules. You need to
+implement these functions 
+
+``` serialize(Object object) throws WebApplicationException``` converts the Object into a String form for this mapper feature.
+
+``` getMediaTypeString() ``` returns the String representation of the ``MediaType``` that the Mapper will handle.
+
+``` getMediaType ``` returns the JAX-RS MediaType representation that the Mapper will handle.
+
+For now, MapperFeatures are restricted to handling the JAX-RS MediaTypes only, but that might change in the future.
 
 # Building
 
