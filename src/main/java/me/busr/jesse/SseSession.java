@@ -35,6 +35,11 @@ public class SseSession {
     private final SseSessionManager sessionManager;
     private final boolean keepAlive;
 
+    /**
+     *
+     * @param sessionManager
+     * @param asyncContext
+     */
     protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
         this.sessionManager = sessionManager;
         this.lock = new ReentrantLock();
@@ -46,7 +51,13 @@ public class SseSession {
         openSession();
     }
 
-    SseSession(SseSessionManager sessionManager, AsyncContext asyncContext, boolean keepAlive) {
+    /**
+     *
+     * @param sessionManager
+     * @param asyncContext
+     * @param keepAlive
+     */
+    protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext, boolean keepAlive) {
         this.sessionManager = sessionManager;
         this.lock = new ReentrantLock();
         this.asyncContext = asyncContext;
@@ -89,9 +100,9 @@ public class SseSession {
                     closeSession();
                 } catch (NullPointerException | IllegalStateException ex) {
                     sessionError(ex);
-                } catch(Throwable ex){
+                } catch (Throwable ex) {
                     LOG.severe(ex.getMessage());
-                }finally {
+                } finally {
                     lock.unlock();
                 }
             }
@@ -222,6 +233,10 @@ public class SseSession {
         return this.asyncContext.equals(other.asyncContext);
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public String toString() {
         return "SseSession{" + "asyncContext=" + asyncContext + '}';

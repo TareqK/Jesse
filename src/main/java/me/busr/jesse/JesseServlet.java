@@ -112,6 +112,10 @@ public class JesseServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Add a mapper feature by class name.
+     * @param featureClassName
+     */
     public void addFeature(String featureClassName) {
         Class<?> mapperFeatureClass;
         try {

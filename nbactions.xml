@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <actions>
         <action>
-            <actionName>CUSTOM-deploy</actionName>
-            <displayName>deploy</displayName>
+            <actionName>CUSTOM-build-deploy</actionName>
+            <displayName>build-deploy</displayName>
             <goals>
-                <goal>jar:jar</goal>
-                <goal>deploy:deploy</goal>
+                <goal>compile</goal>
+                <goal>package</goal>
+                <goal>deploy</goal>
             </goals>
-            <activatedProfiles>
-                <activatedProfile>ossrh</activatedProfile>
-            </activatedProfiles>
         </action>
     </actions>

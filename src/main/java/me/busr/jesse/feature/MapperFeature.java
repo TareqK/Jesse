@@ -14,9 +14,23 @@ import javax.ws.rs.core.MediaType;
  */
 public interface MapperFeature {
     
+    /**
+     *
+     * @param object
+     * @return The object as a string
+     * @throws WebApplicationException on serialization error
+     */
     public String serialize(Object object) throws WebApplicationException;
 
+    /**
+     *
+     * @return the media type of the mapper
+     */
     public String getMediaTypeString();
 
+    /**
+     *
+     * @return the mediay type of the mapper
+     */
     public MediaType getMediaType();
 }
