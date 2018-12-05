@@ -175,9 +175,9 @@ implement these functions
 
 ``` serialize(Object object) throws WebApplicationException``` converts the Object into a String form for this mapper feature.
 
-``` getMediaTypeString() ``` returns the String representation of the ``MediaType``` that the Mapper will handle.
+``` getMediaTypeString() ``` returns the String representation of the ```MediaType``` that the Mapper will handle.
 
-``` getMediaType ``` returns the JAX-RS MediaType representation that the Mapper will handle.
+``` getMediaType() ``` returns the JAX-RS MediaType representation that the Mapper will handle.
 
 For now, MapperFeatures are restricted to handling the JAX-RS MediaTypes only, but that might change in the future.
 
