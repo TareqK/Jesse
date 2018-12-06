@@ -1,3 +1,4 @@
+[![Maven Central](https://img.shields.io/maven-central/v/me.busr/jesse.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22me.busr%22%20AND%20a:%22jesse%22)
 # Jesse
 
 Jesse stands for **J**ava **E**nterprise **S**erver **S**ide **E**vents. It is a framework built using JEE APIs to provide server-side event capability in a JEE web application.
