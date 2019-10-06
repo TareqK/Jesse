@@ -1,4 +1,4 @@
-[![Maven Central](https://img.shields.io/maven-central/v/me.busr/jesse.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22me.busr%22%20AND%20a:%22jesse%22)
+[![Maven Central](https://img.shields.io/maven-central/v/me.kisoft/jesse.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22me.kisoft%22%20AND%20a:%22jesse%22)
 # Jesse
 
 Jesse stands for **J**ava **E**nterprise **S**erver **S**ide **E**vents. It is a framework built using JEE APIs to provide server-side event capability in a JEE web application.
@@ -12,7 +12,7 @@ Add This to your dependencies :
 ```xml
 
     <dependency>
-        <groupId>me.busr</groupId>
+        <groupId>me.kisoft</groupId>
         <artifactId>jesse</artifactId>
     </dependency>
 
@@ -24,7 +24,7 @@ You need to add some entries into your web.xml
 
     <servlet>
         <servlet-name>{Servlet Name}</servlet-name>
-        <servlet-class>me.busr.jesse.JesseServlet</servlet-class >
+        <servlet-class>me.kisoft.jesse.JesseServlet</servlet-class >
         <load-on-startup>1</load-on-startup>
         <async-supported>true</async-supported>
     </servlet>
@@ -40,7 +40,7 @@ If you would like to use your own implementation of the SseSessionManager, then 
 ```xml
 
     <init-param >
-        <param-name>me.busr.jesse.session.manager</param-name >
+        <param-name>me.kisoft.jesse.session.manager</param-name >
         <param-value>{Class name of session manager}</param-value >
     </init-param >
 
@@ -51,7 +51,7 @@ If you would like to use regular keep-alive, then you have to add this init para
 ```xml
 
     <init-param >
-        <param-name>me.busr.jesse.session.keepalive.enabled</param-name >
+        <param-name>me.kisoft.jesse.session.keepalive.enabled</param-name >
         <param-value>{true/false}</param-value >
     </init-param >
 
@@ -62,7 +62,7 @@ You can also set the interval for the Keep-Alive, by using this paramter
 ```xml
 
     <init-param >
-        <param-name>me.busr.jesse.session.keepalive.interval</param-name >
+        <param-name>me.kisoft.jesse.session.keepalive.interval</param-name >
         <param-value>{interval in secconds}</param-value >
     </init-param >
 
@@ -74,7 +74,7 @@ You can also specify the domains that are allowed to access the event stream, by
 ```xml
 
     <init-param >
-        <param-name>me.busr.jesse.session.domains</param-name >
+        <param-name>me.kisoft.jesse.session.domains</param-name >
         <param-value>{comma,separated,domain,names}</param-value >
     </init-param >
 
@@ -85,7 +85,7 @@ Aditionally, you can add mappers for MediaTypes, by adding this to the web.xml
 ```xml
 
     <init-param>
-        <param-name>me.busr.jesse.feature</param-name>
+        <param-name>me.kisoft.jesse.feature</param-name>
         <param-value>{comma,seperated,features,class,names}</param-value>
     </init-param>
     
@@ -98,18 +98,18 @@ For example,this is a complete configuration with a custom session manager and t
 
     <servlet >
         <servlet-name> EventStream Endpoint </servlet-name>
-        <servlet-class>me.busr.jesse.JesseServlet</servlet-class >
+        <servlet-class>me.kisoft.jesse.JesseServlet</servlet-class >
         <init-param>
-            <param-name >me.busr.jesse.session.manager</param-name >
-            <param-value>me.busr.core.sse.BusrSessionManager</param-value >
+            <param-name >me.kisoft.jesse.session.manager</param-name >
+            <param-value>me.kisoft.core.sse.BusrSessionManager</param-value >
         </init-param>
         <init-param >
-            <param-name>me.busr.jesse.session.keepalive.enabled</param-name >
+            <param-name>me.kisoft.jesse.session.keepalive.enabled</param-name >
             <param-value>true</param-value >
          </init-param >
          <init-param>
-            <param-name>me.busr.jesse.feature</param-name>
-            <param-value>me.busr.jesse.feature.JacksonMapperFeature</param-value>
+            <param-name>me.kisoft.jesse.feature</param-name>
+            <param-value>me.kisoft.jesse.feature.JacksonMapperFeature</param-value>
         </init-param>
          <load-on-startup>1</load-on-startup>
          <async-supported>true</async-supported>
