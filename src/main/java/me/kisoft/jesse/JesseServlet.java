@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.busr.jesse;
+package me.kisoft.jesse;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -16,7 +16,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import me.busr.jesse.feature.MapperFeature;
+import me.kisoft.jesse.feature.MapperFeature;
 
 /**
  *
@@ -68,11 +68,11 @@ public class JesseServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        String sessionManagerClassNameParameter = getServletConfig().getInitParameter("me.busr.jesse.session.manager");
-        String domainInitParameter = getServletConfig().getInitParameter("me.busr.jesse.session.domains");
-        String keepAliveParameter = getServletConfig().getInitParameter("me.busr.jesse.session.keepalive.enabled");
-        String keepAliveTimerParameter = getServletConfig().getInitParameter("me.busr.jesse.session.keepalive.interval");
-        String mapperFeaturesParameter = getServletConfig().getInitParameter("me.busr.jesse.feature");
+        String sessionManagerClassNameParameter = getServletConfig().getInitParameter("me.kisoft.jesse.session.manager");
+        String domainInitParameter = getServletConfig().getInitParameter("me.kisoft.jesse.session.domains");
+        String keepAliveParameter = getServletConfig().getInitParameter("me.kisoft.jesse.session.keepalive.enabled");
+        String keepAliveTimerParameter = getServletConfig().getInitParameter("me.kisoft.jesse.session.keepalive.interval");
+        String mapperFeaturesParameter = getServletConfig().getInitParameter("me.kisoft.jesse.feature");
         if (domainInitParameter != null) {
             this.domain = domainInitParameter;
         }

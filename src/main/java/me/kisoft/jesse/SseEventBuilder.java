@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.busr.jesse;
+package me.kisoft.jesse;
 
 import java.util.HashMap;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
-import me.busr.jesse.feature.PlainTextMapperFeature;
-import me.busr.jesse.feature.MapperFeature;
+import me.kisoft.jesse.feature.PlainTextMapperFeature;
+import me.kisoft.jesse.feature.MapperFeature;
 
 /**
  *
