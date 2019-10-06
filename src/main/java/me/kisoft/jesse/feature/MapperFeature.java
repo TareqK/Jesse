@@ -13,24 +13,27 @@ import javax.ws.rs.core.MediaType;
  * @author tareq
  */
 public interface MapperFeature {
-    
-    /**
-     *
-     * @param object
-     * @return The object as a string
-     * @throws WebApplicationException on serialization error
-     */
-    public String serialize(Object object) throws WebApplicationException;
 
-    /**
-     *
-     * @return the media type of the mapper
-     */
-    public String getMediaTypeString();
+  /**
+   * Convert an object to a string format to send
+   *
+   * @param object the object to convert
+   * @return The object as a string
+   * @throws WebApplicationException on serialization error
+   */
+  public String serialize(Object object) throws WebApplicationException;
 
-    /**
-     *
-     * @return the mediay type of the mapper
-     */
-    public MediaType getMediaType();
+  /**
+   * get the media type string of this mapper
+   *
+   * @return the media type of the mapper
+   */
+  public String getMediaTypeString();
+
+  /**
+   * get the media tupe of this mapper
+   *
+   * @return the media type of the mapper
+   */
+  public MediaType getMediaType();
 }

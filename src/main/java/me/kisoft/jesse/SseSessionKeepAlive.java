@@ -18,38 +18,60 @@ import java.util.logging.Logger;
  */
 class SseSessionKeepAlive {
 
-    private static final ScheduledExecutorService KEEPALIVE_SERVIE = Executors.newScheduledThreadPool(1);
-    private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
-    private static long interval = 120;
-    private static volatile Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
+  private static final ScheduledExecutorService KEEPALIVE_SERVIE = Executors.newScheduledThreadPool(1);
+  private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
+  private static long interval = 120;
+  private static volatile Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
 
-    protected static void addSession(SseSession session) {
-        SESSIONS.add(session);
-    }
-
-    protected static void removeSession(SseSession session) {
-        SESSIONS.remove(session);
-    }
-
-    private static class KeepaliveRunner implements Runnable {
-        @Override
-        public void run() {
-            SESSIONS.forEach(session -> {
-                session.pushEvent(new SseEventBuilder()
-                        .event("ping")
-                        .data("Keep-Alive")
-                        .build());
-            });
-        }
-    }
-
-  protected static void start(){
-    
-      KEEPALIVE_SERVIE.scheduleAtFixedRate(new KeepaliveRunner(), 0, interval, TimeUnit.SECONDS);
-      LOG.info("Using session Keep-Alive");
+  /**
+   * Add an SSE session to the keepalive list
+   *
+   * @param session the session to add
+   */
+  protected static void addSession(SseSession session) {
+    SESSIONS.add(session);
   }
-  
-  protected static void setInterval(long interval){
-      SseSessionKeepAlive.interval = interval;
+
+  /**
+   * Remove an SSE session from the keepalive list
+   *
+   * @param session the session to remove
+   */
+  protected static void removeSession(SseSession session) {
+    SESSIONS.remove(session);
+  }
+
+  /**
+   * A class that pings each session in the keepalive list
+   */
+  private static class KeepaliveRunner implements Runnable {
+
+    @Override
+    public void run() {
+      SESSIONS.forEach(session -> {
+        session.pushEvent(new SseEventBuilder()
+         .event("ping")
+         .data("Keep-Alive")
+         .build());
+      });
+    }
+  }
+
+  /**
+   * Schedules the keepalive runner
+   */
+  protected static void start() {
+
+    KEEPALIVE_SERVIE.scheduleAtFixedRate(new KeepaliveRunner(), 0, interval, TimeUnit.SECONDS);
+    LOG.info("Using session Keep-Alive");
+  }
+
+  /**
+   * Sets the interval for the keepalive
+   *
+   * @param interval the interval to set
+   */
+  protected static void setInterval(long interval) {
+    SseSessionKeepAlive.interval = interval;
   }
 }

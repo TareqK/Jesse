@@ -26,220 +26,218 @@ import javax.ws.rs.core.Response;
  */
 public class SseSession {
 
-    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
-    private final AsyncContext asyncContext;
+  private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+  private final AsyncContext asyncContext;
 
-    private final ReentrantLock lock;
-    private static final Logger LOG = Logger.getLogger(SseSession.class.getName());
+  private final ReentrantLock lock;
+  private static final Logger LOG = Logger.getLogger(SseSession.class.getName());
 
-    private final SseSessionManager sessionManager;
-    private final boolean keepAlive;
+  private final SseSessionManager sessionManager;
+  private final boolean keepAlive;
 
-    /**
-     *
-     * @param sessionManager
-     * @param asyncContext
-     */
-    protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
-        this.sessionManager = sessionManager;
-        this.lock = new ReentrantLock();
-        this.asyncContext = asyncContext;
-        asyncContext.setTimeout(-1);
-        asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
-        asyncContext.getResponse().setCharacterEncoding("UTF-8");
-        this.keepAlive = false;
-        openSession();
+  /**
+   *
+   * @param sessionManager the session manager to register this session in
+   * @param asyncContext the async context of the request
+   */
+  protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
+    this.sessionManager = sessionManager;
+    this.lock = new ReentrantLock();
+    this.asyncContext = asyncContext;
+    asyncContext.setTimeout(-1);
+    asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
+    asyncContext.getResponse().setCharacterEncoding("UTF-8");
+    this.keepAlive = false;
+    openSession();
+  }
+
+  /**
+   *
+   * @param sessionManager the session manager to register this session in
+   * @param asyncContext the async context of the request
+   * @param keepAlive whether to keep the session alive or not
+   */
+  protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext, boolean keepAlive) {
+    this.sessionManager = sessionManager;
+    this.lock = new ReentrantLock();
+    this.asyncContext = asyncContext;
+    asyncContext.setTimeout(-1);
+    asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
+    asyncContext.getResponse().setCharacterEncoding("UTF-8");
+    this.keepAlive = keepAlive;
+    openSession();
+  }
+
+  /**
+   * Removes this session from the keepalive list
+   */
+  private void removeKeepAlive() {
+    if (this.keepAlive == true) {
+      SseSessionKeepAlive.removeSession(this);
     }
+  }
 
-    /**
-     *
-     * @param sessionManager
-     * @param asyncContext
-     * @param keepAlive
-     */
-    protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext, boolean keepAlive) {
-        this.sessionManager = sessionManager;
-        this.lock = new ReentrantLock();
-        this.asyncContext = asyncContext;
-        asyncContext.setTimeout(-1);
-        asyncContext.getResponse().setContentType(MediaType.SERVER_SENT_EVENTS);
-        asyncContext.getResponse().setCharacterEncoding("UTF-8");
-        this.keepAlive = keepAlive;
-        openSession();
+  /**
+   * adds this session to the keepalive list
+   */
+  private void addKeepAlive() {
+    if (this.keepAlive == true) {
+      SseSessionKeepAlive.addSession(this);
     }
+  }
 
-    private void removeKeepAlive() {
-        if (this.keepAlive == true) {
-            SseSessionKeepAlive.removeSession(this);
+  /**
+   * Pushes an event to this SseSession
+   *
+   * @param event
+   */
+  public void pushEvent(SseEvent event) {
+    EXECUTOR.submit(new Runnable() {
+      @Override
+      public void run() {
+        lock.lock();
+        try {
+          if (event != null) {
+            ServletOutputStream outputStream = asyncContext.getResponse().getOutputStream();
+            outputStream.print(event.getString());
+            outputStream.flush();
+          }
+        } catch (IOException ex) {
+          closeSession();
+        } catch (NullPointerException | IllegalStateException ex) {
+          sessionError(ex);
+        } catch (Throwable ex) {
+          LOG.severe(ex.getMessage());
+        } finally {
+          lock.unlock();
         }
+      }
+    });
+  }
+
+  private void sessionError(Throwable ex) {
+    LOG.severe(ex.getMessage());
+    removeKeepAlive();
+    this.asyncContext.complete();
+    sessionManager.onError(this);
+
+  }
+
+  /**
+   * Closes this sseSession
+   */
+  public void closeSession() {
+    try {
+      sessionManager.onClose(this);
+    } catch (WebApplicationException ex) {
+      try {
+        HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
+        response.sendError(ex.getResponse().getStatus());
+        response.flushBuffer();
+      } catch (IOException | ClassCastException | NullPointerException | IllegalStateException ex1) {
+      }
+    } finally {
+      removeKeepAlive();
+      this.asyncContext.complete();
     }
 
-    private void addKeepAlive() {
-        if (this.keepAlive == true) {
-            SseSessionKeepAlive.addSession(this);
-        }
-    }
+  }
 
-    /**
-     * Pushes an event to this SseSession
-     *
-     * @param event
-     */
-    public void pushEvent(SseEvent event) {
-        EXECUTOR.submit(new Runnable() {
-            @Override
-            public void run() {
-                lock.lock();
-                try {
-                    if (event != null) {
-                        ServletOutputStream outputStream = asyncContext.getResponse().getOutputStream();
-                        outputStream.print(event.getString());
-                        outputStream.flush();
-                    }
-                } catch (IOException ex) {
-                    closeSession();
-                } catch (NullPointerException | IllegalStateException ex) {
-                    sessionError(ex);
-                } catch (Throwable ex) {
-                    LOG.severe(ex.getMessage());
-                } finally {
-                    lock.unlock();
-                }
-            }
-        });
-    }
+  /**
+   * Opens the SSE ession, and calls the session open callaback in the session manager
+   */
+  private void openSession() {
+    try {
+      sessionManager.onOpen(this);
+      addKeepAlive();
+    } catch (WebApplicationException ex) {
+      try {
+        HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
+        response.sendError(ex.getResponse().getStatus());
+        response.flushBuffer();
+      } catch (IOException | ClassCastException | NullPointerException | IllegalStateException ex1) {
 
-    private void sessionError(Throwable ex) {
-        LOG.severe(ex.getMessage());
+      } finally {
         removeKeepAlive();
         this.asyncContext.complete();
-        sessionManager.onError(this);
-
+      }
     }
+  }
 
-    /**
-     * Closes this sseSession
-     */
-    public void closeSession() {
-        try {
-            sessionManager.onClose(this);
-        } catch (WebApplicationException ex) {
-            try {
-                HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
-                response.sendError(ex.getResponse().getStatus());
-                response.flushBuffer();
-            } catch (IOException | ClassCastException | NullPointerException | IllegalStateException ex1) {
-            }
-        } finally {
-            removeKeepAlive();
-            this.asyncContext.complete();
+  /**
+   * Get the SseSession cookies
+   *
+   * @return the Session Cookies
+   */
+  public Cookie[] getCookies() throws WebApplicationException {
+    try {
+      HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
+      return r.getCookies();
+    } catch (ClassCastException | NullPointerException | IllegalStateException ex) {
+      throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Gets a cookie by name
+   *
+   * @param cookieName the name of the cookie
+   * @return the cookie, if found
+   * @throws WebApplicationException if the cookie is not found
+   */
+  public Cookie getCookie(String cookieName) throws WebApplicationException {
+    try {
+      HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
+      Cookie[] cookies = r.getCookies();
+      if (cookies != null) {
+        for (Cookie cookie : cookies) {
+          if (cookie.getName().equals(cookieName)) {
+            return cookie;
+          }
         }
-
+      }
+      throw new WebApplicationException(Response.Status.BAD_REQUEST);
+    } catch (ClassCastException | NullPointerException | IllegalStateException ex) {
+      LOG.severe(ex.getMessage());
+      throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
     }
+  }
 
-    private void openSession() {
-        try {
-            sessionManager.onOpen(this);
-            addKeepAlive();
-        } catch (WebApplicationException ex) {
-            try {
-                HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
-                response.sendError(ex.getResponse().getStatus());
-                response.flushBuffer();
-            } catch (IOException | ClassCastException | NullPointerException | IllegalStateException ex1) {
+  /**
+   * gets the value of a cookie as a string
+   *
+   * @param cookieName the cookie we are searching for
+   * @return the value field of the cookie
+   */
+  public String getCookieValue(String cookieName) throws WebApplicationException {
+    return getCookie(cookieName).getValue();
+  }
 
-            } finally {
-                removeKeepAlive();
-                this.asyncContext.complete();
-            }
-        }
+  @Override
+  public int hashCode() {
+    int hash = 3;
+    hash = 47 * hash + Objects.hashCode(this.asyncContext);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
-
-    /**
-     * Get the SseSession cookies
-     *
-     * @return the Session Cookies
-     */
-    public Cookie[] getCookies() throws WebApplicationException {
-        try {
-            HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
-            return r.getCookies();
-        } catch (ClassCastException | NullPointerException | IllegalStateException ex) {
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-        }
+    if (obj == null) {
+      return false;
     }
-
-    /**
-     *
-     * @param cookieName the name of the cookie
-     * @return the cookie, if found
-     * @throws WebApplicationException if the cookie is not found
-     */
-    public Cookie getCookie(String cookieName) throws WebApplicationException {
-        try {
-            HttpServletRequest r = (HttpServletRequest) this.asyncContext.getRequest();
-            Cookie[] cookies = r.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (cookie.getName().equals(cookieName)) {
-                        return cookie;
-                    }
-                }
-            }
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        } catch (ClassCastException | NullPointerException | IllegalStateException ex) {
-            LOG.severe(ex.getMessage());
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-        }
+    if (getClass() != obj.getClass()) {
+      return false;
     }
+    final SseSession other = (SseSession) obj;
+    return this.asyncContext.equals(other.asyncContext);
+  }
 
-    /**
-     *
-     * @param cookieName the cookie we are searching for
-     * @return the value field of the cookie
-     */
-    public String getCookieValue(String cookieName) throws WebApplicationException {
-        return getCookie(cookieName).getValue();
-    }
-
-    /**
-     *
-     * @return
-     */
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 47 * hash + Objects.hashCode(this.asyncContext);
-        return hash;
-    }
-
-    /**
-     *
-     * @param obj
-     * @return
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final SseSession other = (SseSession) obj;
-        return this.asyncContext.equals(other.asyncContext);
-    }
-
-    /**
-     *
-     * @return
-     */
-    @Override
-    public String toString() {
-        return "SseSession{" + "asyncContext=" + asyncContext + '}';
-    }
+  @Override
+  public String toString() {
+    return "SseSession{" + "asyncContext=" + asyncContext + '}';
+  }
 
 }
