@@ -71,6 +71,10 @@
             <configuration>
               <passphrase>${gpg.passphrase}</passphrase>
               <keyname>0E67DEB8220993E82E8CB4863E2F6EE7E3E324B5</keyname>
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
             </configuration>
             <id>sign-artifacts</id>
             <phase>verify</phase>
