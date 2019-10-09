@@ -21,19 +21,19 @@ public interface MapperFeature {
    * @return The object as a string
    * @throws WebApplicationException on serialization error
    */
-  public String serialize(Object object) throws WebApplicationException;
+  String serialize(Object object) throws WebApplicationException;
 
   /**
    * get the media type string of this mapper
    *
    * @return the media type of the mapper
    */
-  public String getMediaTypeString();
+  String getMediaTypeString();
 
   /**
    * get the media tupe of this mapper
    *
    * @return the media type of the mapper
    */
-  public MediaType getMediaType();
+  MediaType getMediaType();
 }

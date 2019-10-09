@@ -21,6 +21,11 @@ public abstract class SseSessionManager {
    */
   private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
 
+  /**
+   * Gets the executor service used to push events
+   *
+   * @return an executor service
+   */
   public static final ExecutorService getExecutor() {
     return EXECUTOR;
   }
