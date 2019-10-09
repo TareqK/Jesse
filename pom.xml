@@ -45,7 +45,10 @@
     <gpg.plugin.version>1.5</gpg.plugin.version>
     <source.plugin.version>2.2.1</source.plugin.version>
     <javadoc.plugin.version>2.9.1</javadoc.plugin.version>
+    <junit.version>4.12</junit.version>
+    <tomcat.version>8.5.15</tomcat.version>
     <gpg.keyname>0E67DEB8220993E82E8CB4863E2F6EE7E3E324B5</gpg.keyname>
+    <cxf.version>3.3.3</cxf.version>
   </properties>
   <dependencies>
     <dependency>
@@ -73,6 +76,30 @@
       <version>${jackson.version}</version>
       <scope>compile</scope>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-jasper</artifactId>
+      <version>${tomcat.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-rs-client</artifactId>
+      <version>${cxf.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-rs-sse</artifactId>
+      <version>${cxf.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

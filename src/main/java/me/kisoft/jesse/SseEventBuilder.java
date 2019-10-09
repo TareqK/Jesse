@@ -102,14 +102,11 @@ public class SseEventBuilder {
       builder.append("retry: ").append(retry).append("\n");
     }
     if (this.data != null) {
-      try {
-        builder.append("data: ").append(MapperFeatureRegistry.getInstance().get(mediaType).serialize(this.data));
-      } catch (NullPointerException ex) {
-        throw new WebApplicationException(
-         builder.append("Error : Null Exception During Serialization ")
-          .append(this.mediaType.getType())
-          .append(" was found").toString(), 400);
-      }
+      builder.append("data: ")
+       .append(MapperFeatureRegistry.getInstance()
+        .get(this.mediaType)
+        .serialize(this.data));
+
     }
     builder.append("\n\n");
     return new SseEvent(builder.toString());
