@@ -11,30 +11,33 @@ package me.kisoft.jesse;
  */
 public class SseEvent {
 
-    private final String eventString;
-    
-    /**
-     * Create an Sse Event from a String
-     * @param eventString
-     */
-    protected SseEvent(String eventString) {
-        this.eventString  = eventString;
-    }
+  private final String eventString;
 
-    /**
-     *  Get the SSE event as a string
-     * @return
-     */
-    protected String getString() {
-        return eventString;
-    }
-    
-    /**
-     * Get the SSE Event Builder
-     * @return
-     */
-    public static final SseEventBuilder getBuilder(){
-        return new SseEventBuilder();
-    }
-    
+  /**
+   * Create an Sse Event from a String
+   *
+   * @param eventString the value of the event as a stirng
+   */
+  protected SseEvent(String eventString) {
+    this.eventString = eventString;
+  }
+
+  /**
+   * Get the SSE event as a string
+   *
+   * @return the data of the event as a string
+   */
+  protected String getString() {
+    return eventString;
+  }
+
+  /**
+   * Get the SSE Event Builder
+   *
+   * @return an SSE Ecent Builder
+   */
+  public static final SseEventBuilder getBuilder() {
+    return new SseEventBuilder();
+  }
+
 }

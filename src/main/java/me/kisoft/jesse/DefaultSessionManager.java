@@ -12,39 +12,38 @@ import java.util.HashSet;
  * @author tareq
  */
 public class DefaultSessionManager extends SseSessionManager {
-    
-    private static final HashSet<SseSession> SESSIONS = new HashSet();
-    
-    /**
-     * The Default implementation of the session manager which simply stores sessions in a hashset
-     */
-    public DefaultSessionManager() {
-        
-    }
-    
-    @Override
-    public void onClose(SseSession session) {
-       SESSIONS.remove(session);
-    }
-    
-    @Override
-    public void onOpen(SseSession session) {
-        SESSIONS.add(session);
-    }
-    
-    /**
-     * send an event to all sessions
-     * @param event
-     */
-    public static void broadcastEvent(SseEvent event) {
-        broadcastEvent(SESSIONS,event);
-    }
 
-    @Override
-    public void onError(SseSession session) {
-        SESSIONS.remove(session);
-    }
-    
-    
-    
+  private static final HashSet<SseSession> SESSIONS = new HashSet();
+
+  /**
+   * The Default implementation of the session manager which simply stores sessions in a hashset
+   */
+  public DefaultSessionManager() {
+
+  }
+
+  @Override
+  public void onClose(SseSession session) {
+    SESSIONS.remove(session);
+  }
+
+  @Override
+  public void onOpen(SseSession session) {
+    SESSIONS.add(session);
+  }
+
+  /**
+   * send an event to all sessions
+   *
+   * @param event the SSE Event to send
+   */
+  public static void broadcastEvent(SseEvent event) {
+    broadcastEvent(SESSIONS, event);
+  }
+
+  @Override
+  public void onError(SseSession session) {
+    SESSIONS.remove(session);
+  }
+
 }

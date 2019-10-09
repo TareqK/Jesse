@@ -15,27 +15,43 @@ import javax.ws.rs.core.Response;
  *
  * @author tareq
  */
-public class JacksonMapperFeature implements MapperFeature{
+public class JacksonMapperFeature implements MapperFeature {
 
-    ObjectMapper mapper = new ObjectMapper();
-    
-    @Override
-    public String serialize(Object object) throws WebApplicationException {
-        try {
-            return mapper.writeValueAsString(object);
-        } catch (JsonProcessingException ex) {
-            throw new WebApplicationException(ex.getMessage(),Response.Status.BAD_REQUEST);
-        }
-    }
+  private final ObjectMapper mapper;
 
-    @Override
-    public String getMediaTypeString() {
-        return MediaType.APPLICATION_JSON;
-    }
+  /**
+   * Create a new JacksonMapperFeature with the default mapper
+   */
+  public JacksonMapperFeature() {
+    this.mapper = new ObjectMapper();
+  }
 
-    @Override
-    public MediaType getMediaType() {
-        return MediaType.APPLICATION_JSON_TYPE;
+  /**
+   * Create a new JacksonMapperFeature with a provided ObjectMapper;
+   *
+   * @param myMapper the custom mapper you want to serialize with.
+   */
+  public JacksonMapperFeature(ObjectMapper myMapper) {
+    this.mapper = myMapper;
+  }
+
+  @Override
+  public String serialize(Object object) throws WebApplicationException {
+    try {
+      return mapper.writeValueAsString(object);
+    } catch (JsonProcessingException ex) {
+      throw new WebApplicationException(ex.getMessage(), Response.Status.BAD_REQUEST);
     }
+  }
+
+  @Override
+  public String getMediaTypeString() {
+    return MediaType.APPLICATION_JSON;
+  }
+
+  @Override
+  public MediaType getMediaType() {
+    return MediaType.APPLICATION_JSON_TYPE;
+  }
 
 }
