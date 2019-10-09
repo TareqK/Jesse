@@ -33,45 +33,54 @@
   <scm>
     <url>http://github.com/TareqK/Jesse</url>
   </scm>
-
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <javax.servlet.version>3.1.0</javax.servlet.version>
+    <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
+    <jackson.version>2.9.10</jackson.version>
+    <checkstyle.plugin.version>3.0.0</checkstyle.plugin.version>
+    <checkstyle.xml>checkstyle.xml</checkstyle.xml>
+    <gpg.plugin.version>1.5</gpg.plugin.version>
+    <source.plugin.version>2.2.1</source.plugin.version>
+    <javadoc.plugin.version>2.9.1</javadoc.plugin.version>
+    <gpg.keyname>0E67DEB8220993E82E8CB4863E2F6EE7E3E324B5</gpg.keyname>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-      <version>3.1.0</version>
+      <version>${javax.servlet.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
-      <version>2.1.1</version>
+      <version>${javax.ws.rs-api.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.9.7</version>
+      <version>${jackson.version}</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
   </dependencies>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
+
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.0.0</version>
+        <version>${checkstyle.plugin.version}</version>
         <executions>
           <execution>
             <id>validate</id>
             <phase>validate</phase>
             <configuration>
-              <configLocation>checkstyle.xml</configLocation>
+              <configLocation>${checkstyle.xml}</configLocation>
               <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
               <failsOnError>true</failsOnError>
@@ -99,12 +108,12 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.5</version>
+            <version>${gpg.plugin.version}</version>
             <executions>
               <execution>
                 <configuration>
                   <passphrase>${gpg.passphrase}</passphrase>
-                  <keyname>0E67DEB8220993E82E8CB4863E2F6EE7E3E324B5</keyname>
+                  <keyname>${gpg.keyname}</keyname>
                   <gpgArguments>
                     <arg>--pinentry-mode</arg>
                     <arg>loopback</arg>
@@ -121,7 +130,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>2.2.1</version>
+            <version>${source.plugin.version}</version>
             <executions>
               <execution>
                 <id>attach-sources</id>
@@ -134,7 +143,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.9.1</version>
+            <version>${javadoc.plugin.version}</version>
             <executions>
               <execution>
                 <id>attach-javadocs</id>
@@ -153,9 +162,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.0.0</version>
+        <version>${checkstyle.plugin.version}</version>
         <configuration>
-          <configLocation>checkstyle.xml</configLocation>
+          <configLocation>${checkstyle.xml}</configLocation>
         </configuration>
       </plugin>
     </plugins>
