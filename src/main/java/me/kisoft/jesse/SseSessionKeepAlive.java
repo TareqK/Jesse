@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 class SseSessionKeepAlive {
 
-  private static final ScheduledExecutorService KEEPALIVE_SERVIE = Executors.newScheduledThreadPool(1);
+  private static final ScheduledExecutorService KEEPALIVE_SERVICE = Executors.newScheduledThreadPool(1);
   private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
   private static long interval = 120;
   private static final Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
@@ -46,28 +46,47 @@ class SseSessionKeepAlive {
   }
 
   /**
-   * A class that pings each session in the keepalive list
+   * A class that pings each session in the keepalive list. If this runner is interrupted, it will no longer resheduele itself, and the
+   * keepalive must be started again.
    */
   private static class KeepaliveRunner implements Runnable {
 
+    private static final Logger LOG = Logger.getLogger(KeepaliveRunner.class.getName());
+
     @Override
     public void run() {
-      SESSIONS.forEach(session -> {
-        session.pushEvent(new SseEventBuilder()
-         .event("ping")
-         .data("Keep-Alive")
-         .build());
-      });
+      try {
+        SESSIONS.forEach(session -> {
+          session.pushEvent(new SseEventBuilder()
+           .event("ping")
+           .data("Keep-Alive")
+           .build());
+        });
+      } finally {
+        if (!Thread.interrupted()) {//only attempt a rescheduele if the thread hasnt been interrupted.
+          LOG.finest("Resechedueling Keepalive thread");
+          schedueleOnce(this);
+        }
+      }
     }
+
   }
 
   /**
    * Schedules the keepalive runner
    */
   protected static void start() {
+    schedueleOnce(new KeepaliveRunner());
+    LOG.info("Started Keepalive runner");
+  }
 
-    KEEPALIVE_SERVIE.scheduleAtFixedRate(new KeepaliveRunner(), 0, interval, TimeUnit.SECONDS);
-    LOG.info("Using session Keep-Alive");
+  /**
+   * shedules a keepalive runner with the globaly set refresh interval in seconds
+   *
+   * @param runner the runner to reshecuele
+   */
+  private static void schedueleOnce(KeepaliveRunner runner) {
+    KEEPALIVE_SERVICE.schedule(runner, interval, TimeUnit.SECONDS);
   }
 
   /**
@@ -77,5 +96,6 @@ class SseSessionKeepAlive {
    */
   protected static void setInterval(long newInterval) {
     SseSessionKeepAlive.interval = newInterval;
+    LOG.info("Keepalive interval changed, changes will take effect on the next keepalive run");
   }
 }
