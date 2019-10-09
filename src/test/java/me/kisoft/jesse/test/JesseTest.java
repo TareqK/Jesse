@@ -42,16 +42,12 @@ public class JesseTest {
   public static SseEventSource source;
 
   public static void setupServer(Map<String, String> initParameters) throws Exception {
-    // useful only for Spring applications; select an application profile
-
-    // tell Tomcat where to find the (deployed) application
     tomcat = new Tomcat();
 
     tomcat.setPort(SERVER_PORT);
 
     Context ctx = tomcat.addContext(APPLICATION_BASE, System.getProperty("java.io.tmpdir"));
-    // configure the web application
-    // enable JNDI, e.g. for server-provided data sources
+
     Wrapper wrapper = Tomcat.addServlet(ctx, JESSE_NAME, new JesseServlet());
     wrapper.addInitParameter("me.kisoft.jesse.session.keepalive.enabled", "true");
     wrapper.addInitParameter("me.kisoft.jesse.session.keepalive.interval", "1");
