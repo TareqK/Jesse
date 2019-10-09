@@ -21,7 +21,11 @@ class SseSessionKeepAlive {
   private static final ScheduledExecutorService KEEPALIVE_SERVIE = Executors.newScheduledThreadPool(1);
   private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
   private static long interval = 120;
-  private static volatile Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
+  private static final Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
+
+  private SseSessionKeepAlive() {
+    throw new IllegalArgumentException("This is a Utility Class");
+  }
 
   /**
    * Add an SSE session to the keepalive list
@@ -69,9 +73,9 @@ class SseSessionKeepAlive {
   /**
    * Sets the interval for the keepalive
    *
-   * @param interval the interval to set
+   * @param newInterval the interval to set
    */
-  protected static void setInterval(long interval) {
-    SseSessionKeepAlive.interval = interval;
+  protected static void setInterval(long newInterval) {
+    SseSessionKeepAlive.interval = newInterval;
   }
 }

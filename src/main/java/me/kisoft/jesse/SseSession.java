@@ -72,7 +72,7 @@ public class SseSession {
    * Removes this session from the keepalive list
    */
   private void removeKeepAlive() {
-    if (this.keepAlive == true) {
+    if (this.keepAlive) {
       SseSessionKeepAlive.removeSession(this);
     }
   }
@@ -81,7 +81,7 @@ public class SseSession {
    * adds this session to the keepalive list
    */
   private void addKeepAlive() {
-    if (this.keepAlive == true) {
+    if (this.keepAlive) {
       SseSessionKeepAlive.addSession(this);
     }
   }
@@ -89,7 +89,7 @@ public class SseSession {
   /**
    * Pushes an event to this SseSession
    *
-   * @param event
+   * @param event the SSE Event to send
    */
   public void pushEvent(SseEvent event) {
     EXECUTOR.submit(new Runnable() {
@@ -168,6 +168,7 @@ public class SseSession {
    * Get the SseSession cookies
    *
    * @return the Session Cookies
+   * @throws WebApplicationException if there is an issue with the request context
    */
   public Cookie[] getCookies() throws WebApplicationException {
     try {
@@ -208,6 +209,7 @@ public class SseSession {
    *
    * @param cookieName the cookie we are searching for
    * @return the value field of the cookie
+   * @throws WebApplicationException if there is an issue with the request context
    */
   public String getCookieValue(String cookieName) throws WebApplicationException {
     return getCookie(cookieName).getValue();

@@ -5,11 +5,9 @@
  */
 package me.kisoft.jesse;
 
-import java.util.HashMap;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
-import me.kisoft.jesse.feature.MapperFeature;
-import me.kisoft.jesse.feature.PlainTextMapperFeature;
+import me.kisoft.jesse.feature.MapperFeatureRegistry;
 
 /**
  *
@@ -22,11 +20,6 @@ public class SseEventBuilder {
   private String id;
   private String retry;
   private MediaType mediaType = MediaType.TEXT_PLAIN_TYPE;
-  private static final HashMap<MediaType, MapperFeature> MAPPER_MAP = new HashMap();
-
-  static {
-    MAPPER_MAP.put(MediaType.TEXT_PLAIN_TYPE, new PlainTextMapperFeature());
-  }
 
   /**
    * Creates a new event builder
@@ -38,55 +31,55 @@ public class SseEventBuilder {
   /**
    * Adds data to the event
    *
-   * @param data the data of the event
+   * @param eventData the data of the event
    * @return the sse event builder
    */
-  public SseEventBuilder data(Object data) {
-    this.data = data;
+  public SseEventBuilder data(Object eventData) {
+    this.data = eventData;
     return this;
   }
 
   /**
    * Adds the event type
    *
-   * @param event the type/name of the event
+   * @param eventName the type/name of the event
    * @return the sse event builder
    */
-  public SseEventBuilder event(String event) {
-    this.event = String.valueOf(event);
+  public SseEventBuilder event(String eventName) {
+    this.event = String.valueOf(eventName);
     return this;
   }
 
   /**
    * Adds the event id
    *
-   * @param id the Id of the event
+   * @param eventId the Id of the event
    * @return the sse event builder
    */
-  public SseEventBuilder id(Object id) {
-    this.id = String.valueOf(id);
+  public SseEventBuilder id(Object eventId) {
+    this.id = String.valueOf(eventId);
     return this;
   }
 
   /**
    * Adds the retry interval
    *
-   * @param retry the retry interval for the SSE event, in milliseconds
+   * @param eventRetryInterval the retry interval for the SSE event, in milliseconds
    * @return the sse event builder
    */
-  public SseEventBuilder retry(long retry) {
-    this.retry = String.valueOf(retry);
+  public SseEventBuilder retry(long eventRetryInterval) {
+    this.retry = String.valueOf(eventRetryInterval);
     return this;
   }
 
   /**
    * The media type of this event
    *
-   * @param mediaType the media type of the event
+   * @param eventMediaType the media type of the event
    * @return the sse event builder
    */
-  public SseEventBuilder mediaType(String mediaType) {
-    this.mediaType = MediaType.valueOf(mediaType);
+  public SseEventBuilder mediaType(String eventMediaType) {
+    this.mediaType = MediaType.valueOf(eventMediaType);
     return this;
   }
 
@@ -94,6 +87,7 @@ public class SseEventBuilder {
    * Builds the event in the RFC specified event format.
    *
    * @return an SSE event containing the string of the event
+   * @throws WebApplicationException if there is no serializer for the media type of the event
    */
   public SseEvent build() throws WebApplicationException {
 
@@ -109,25 +103,16 @@ public class SseEventBuilder {
     }
     if (this.data != null) {
       try {
-        builder.append("data: ").append(MAPPER_MAP.getOrDefault(this.mediaType, new PlainTextMapperFeature()).serialize(this.data));
+        builder.append("data: ").append(MapperFeatureRegistry.getInstance().get(mediaType).serialize(this.data));
       } catch (NullPointerException ex) {
         throw new WebApplicationException(
-         builder.append("Error : No serializer for media type ")
+         builder.append("Error : Null Exception During Serialization ")
           .append(this.mediaType.getType())
           .append(" was found").toString(), 400);
       }
     }
     builder.append("\n\n");
     return new SseEvent(builder.toString());
-  }
-
-  /**
-   * Adds a new feature mapper to be used to build events
-   *
-   * @param mapper the mapper to add
-   */
-  protected static final void addMapper(MapperFeature mapper) {
-    MAPPER_MAP.put(mapper.getMediaType(), mapper);
   }
 
 }

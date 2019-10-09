@@ -11,28 +11,42 @@ import javax.servlet.AsyncContext;
  *
  * @author tareq
  */
-public class SseSessionBuilder {
+public class SseSessionFactory {
+
+  private static SseSessionFactory instance = getInstance();
 
   /**
-   * Build a session without keepalive
+   * Gets the current instance of the SseSessionFactory;
+   *
+   * @return the current SseSessionFactory
+   */
+  protected static SseSessionFactory getInstance() {
+    if (instance == null) {//no need for sync because of eager instantiation
+      instance = new SseSessionFactory();
+    }
+    return instance;
+  }
+
+  /**
+   * Create a session without keepalive
    *
    * @param asyncContext the async context of the request
    * @param manager the session manager to use
    * @return an SSE Session
    */
-  protected static SseSession buildSession(AsyncContext asyncContext, SseSessionManager manager) {
+  protected SseSession createSession(AsyncContext asyncContext, SseSessionManager manager) {
     return new SseSession(manager, asyncContext);
   }
 
   /**
-   * Build a session with a keep alive param
+   * Create a session with a keep alive param
    *
    * @param asyncContext the async context of this request
    * @param manager the session manager to use
    * @param keepAlive whether to keep the session alive or not
    * @return an SSE session
    */
-  protected static SseSession buildSession(AsyncContext asyncContext, SseSessionManager manager, boolean keepAlive) {
+  protected SseSession createSession(AsyncContext asyncContext, SseSessionManager manager, boolean keepAlive) {
     return new SseSession(manager, asyncContext, keepAlive);
   }
 }

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import me.kisoft.jesse.feature.MapperFeature;
+import me.kisoft.jesse.feature.MapperFeatureRegistry;
 
 /**
  *
@@ -43,7 +44,7 @@ public class JesseServlet extends HttpServlet {
     asyncContextResponse.addHeader("Access-Control-Expose-Headers", "*");
     asyncContextResponse.addHeader("Access-Control-Allow-Credentials", "true");
     EXECUTOR.submit(() -> {
-      SseSessionBuilder.buildSession(asyncContext, manager, keepAlive);
+      SseSessionFactory.getInstance().createSession(asyncContext, manager, keepAlive);
 
     });
   }
@@ -122,7 +123,7 @@ public class JesseServlet extends HttpServlet {
     try {
       mapperFeatureClass = Class.forName(featureClassName);
       MapperFeature mapperFeature = (MapperFeature) mapperFeatureClass.newInstance();
-      SseEventBuilder.addMapper(mapperFeature);
+      MapperFeatureRegistry.getInstance().register(mapperFeature);
       LOG.info("using ".concat(mapperFeatureClass.getCanonicalName()));
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NullPointerException ex) {
       LOG.warning(ex.getMessage());
