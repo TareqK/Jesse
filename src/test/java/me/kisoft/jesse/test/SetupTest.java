@@ -15,11 +15,11 @@
  */
 package me.kisoft.jesse.test;
 
-import java.util.function.Consumer;
-import javax.ws.rs.sse.InboundSseEvent;
-import me.kisoft.jesse.DefaultSessionManager;
+import java.util.HashMap;
 import me.kisoft.jesse.SseEvent;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,32 +29,28 @@ import org.junit.Test;
  */
 public class SetupTest extends JesseTest {
 
+  private static final HashMap<String, String> TEST_MAP = new HashMap<>();
+
   @BeforeClass
   public static void setup() throws Exception {
-    setupServer(null);
+    TEST_MAP.put("me.kisoft.jesse.session.keepalive.enabled", "false");
+    initializeTestEnvironment(TEST_MAP);
   }
 
   @Test
-  public void testTest() throws InterruptedException {
+  public void eventSentTest() {
+    SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
+    assertEquals(event, broadcastAndListen(event, 1));
+  }
 
-    source.register(new Consumer<InboundSseEvent>() {
-      @Override
-      public void accept(InboundSseEvent inboundSseEvent) {
-        System.out.println(inboundSseEvent.getName());
-        synchronized (syncObject) {
-          syncObject.notifyAll();
-        }
-      }
-    });
-    DefaultSessionManager.broadcastEvent(SseEvent.getBuilder().data("test").event("test").build());
-    synchronized (syncObject) {
-      syncObject.wait();
-    }
-
+  @Test
+  public void eventValueTest() {
+    SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
+    assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event, 1));
   }
 
   @AfterClass
   public static void shutdown() throws Exception {
-    stopServer();
+    destroyTestEnvironment();
   }
 }
