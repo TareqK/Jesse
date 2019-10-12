@@ -15,10 +15,10 @@
  */
 package me.kisoft.jesse.test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -47,7 +47,7 @@ public class JesseTest {
   public final static int SERVER_PORT = 9090;
   public final static int TIMEOUT = 30000;
   public static final String URL = "http://localhost:" + SERVER_PORT + JESSE_BASE;
-  public static final List<SseEventSource> SOURCES = new ArrayList<>();
+  public static final List<SseEventSource> SOURCES = new CopyOnWriteArrayList<>();
   static Tomcat tomcat;
   public final Object syncObject = new Object();
   public static SseEventSource defaultSource;
@@ -86,7 +86,7 @@ public class JesseTest {
     }
     wrapper.setAsyncSupported(true);
     tomcat.start();
-    defaultSource = getSource();
+    defaultSource = createSource();
 
   }
 
@@ -97,11 +97,8 @@ public class JesseTest {
    */
   public static void destroyTestEnvironment() throws Exception {
     for (SseEventSource source : SOURCES) {
-      try {
-        source.close();
-      } catch (Exception e) {
-        //just a catch all for silent destruction
-      }
+      SOURCES.remove(source);
+      source.close(30, TimeUnit.MILLISECONDS);
     }
     tomcat.stop();
     tomcat.destroy();
@@ -124,7 +121,7 @@ public class JesseTest {
    *
    * @return an SseEventSource listening to Jesse
    */
-  public static SseEventSource getSource() {
+  public static SseEventSource createSource() {
     Client client = ClientBuilder.newClient();
     WebTarget target = client.target(URL);
     SseEventSource source = SseEventSource.target(target).build();
@@ -153,7 +150,7 @@ public class JesseTest {
    * @param event the event to send and listen for
    * @return the Future for this Sse Event
    */
-  CompletableFuture<SseEvent> listen(SseEvent event) {
+  public CompletableFuture<SseEvent> listen(SseEvent event) {
     return listen(defaultSource, event);
   }
 
@@ -220,5 +217,9 @@ public class JesseTest {
     public CompletableFuture<SseEvent> getFuture() {
       return this.completableFuture;
     }
+  }
+
+  protected static List<SseEventSource> getSourcesList() {
+    return SOURCES;
   }
 }
