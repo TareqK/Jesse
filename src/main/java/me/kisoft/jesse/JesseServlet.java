@@ -8,6 +8,7 @@ package me.kisoft.jesse;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletConfig;
@@ -26,7 +27,11 @@ public class JesseServlet extends HttpServlet {
 
   private static final Logger LOG = Logger.getLogger(JesseServlet.class.getName());
   private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
-
+  private static final String SESSION_MANAGER_PROPERTY = "me.kisoft.jesse.session.manager";
+  private static final String DOMAINS_PROPERTY = "me.kisoft.jesse.session.domains";
+  private static final String KEEPALIVE_ENABLED_PROPERTY = "me.kisoft.jesse.session.keepalive.enabled";
+  private static final String KEEPALIVE_INTERVAL_PROPERTY = "me.kisoft.jesse.session.keepalive.interval";
+  private static final String FEATURES_PROPERTY = "me.kisoft.jesse.feature";
   private SseSessionManager manager;
   private String domain = "*";
   private boolean keepAlive = false;
@@ -68,11 +73,12 @@ public class JesseServlet extends HttpServlet {
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    String sessionManagerClassNameParameter = getServletConfig().getInitParameter("me.kisoft.jesse.session.manager");
-    String domainInitParameter = getServletConfig().getInitParameter("me.kisoft.jesse.session.domains");
-    String keepAliveParameter = getServletConfig().getInitParameter("me.kisoft.jesse.session.keepalive.enabled");
-    String keepAliveTimerParameter = getServletConfig().getInitParameter("me.kisoft.jesse.session.keepalive.interval");
-    String mapperFeaturesParameter = getServletConfig().getInitParameter("me.kisoft.jesse.feature");
+    LOG.log(Level.INFO, "Jesse Servlet Starting at context {0}", config.getServletContext().getContextPath());
+    String sessionManagerClassNameParameter = getServletConfig().getInitParameter(SESSION_MANAGER_PROPERTY);
+    String domainInitParameter = getServletConfig().getInitParameter(DOMAINS_PROPERTY);
+    String keepAliveParameter = getServletConfig().getInitParameter(KEEPALIVE_ENABLED_PROPERTY);
+    String keepAliveTimerParameter = getServletConfig().getInitParameter(KEEPALIVE_INTERVAL_PROPERTY);
+    String mapperFeaturesParameter = getServletConfig().getInitParameter(FEATURES_PROPERTY);
     if (domainInitParameter != null) {
       this.domain = domainInitParameter;
     }
@@ -96,6 +102,9 @@ public class JesseServlet extends HttpServlet {
         SseSessionManager sessionManager = (SseSessionManager) sessionManagerClass.newInstance();
         this.manager = sessionManager;
         LOG.info("using ".concat(sessionManagerClass.getCanonicalName()).concat(" as session manager"));
+      } else {
+        LOG.info(" defaulting to built in session manager");
+        this.manager = new DefaultSessionManager();
       }
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NullPointerException ex) {
       this.manager = new DefaultSessionManager();

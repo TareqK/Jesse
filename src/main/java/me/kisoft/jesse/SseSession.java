@@ -34,6 +34,7 @@ public class SseSession {
 
   private final SseSessionManager sessionManager;
   private final boolean keepAlive;
+  private static final SseEvent WELCOME_EVENT = SseEvent.getBuilder().data("Welcome").event("greeting").id(-9999).build();
 
   /**
    *
@@ -92,25 +93,21 @@ public class SseSession {
    * @param event the SSE Event to send
    */
   public void pushEvent(SseEvent event) {
-    EXECUTOR.submit(new Runnable() {
-      @Override
-      public void run() {
-        lock.lock();
-        try {
-          if (event != null) {
-            ServletOutputStream outputStream = asyncContext.getResponse().getOutputStream();
-            outputStream.print(event.getString());
-            outputStream.flush();
-          }
-        } catch (IOException ex) {
-          closeSession();
-        } catch (NullPointerException | IllegalStateException ex) {
-          sessionError(ex);
-        } catch (Throwable ex) {
-          LOG.severe(ex.getMessage());
-        } finally {
-          lock.unlock();
+    EXECUTOR.submit(() -> {
+      lock.lock();
+      try {
+        if (event != null) {
+          ServletOutputStream outputStream = asyncContext.getResponse().getOutputStream();
+          outputStream.print(event.getEventString());
+          outputStream.flush();
         }
+      } catch (IOException ex) {
+        LOG.info(ex.getMessage());
+        closeSession();
+      } catch (NullPointerException | IllegalStateException ex) {
+        sessionError(ex);
+      } finally {
+        lock.unlock();
       }
     });
   }
@@ -150,6 +147,7 @@ public class SseSession {
     try {
       sessionManager.onOpen(this);
       addKeepAlive();
+      sendGreeting();
     } catch (WebApplicationException ex) {
       try {
         HttpServletResponse response = (HttpServletResponse) asyncContext.getResponse();
@@ -240,6 +238,10 @@ public class SseSession {
   @Override
   public String toString() {
     return "SseSession{" + "asyncContext=" + asyncContext + '}';
+  }
+
+  private void sendGreeting() {
+    pushEvent(WELCOME_EVENT);
   }
 
 }

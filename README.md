@@ -7,7 +7,7 @@ Jesse stands for **J**ava **E**nterprise **S**erver **S**ide **E**vents. It is a
 
 ## Adding It to your project
 
-Add This to your dependencies : 
+Add This to your dependencies :
 
 ```xml
 
@@ -18,7 +18,7 @@ Add This to your dependencies :
 
 ```
 ## Setup
-You need to add some entries into your web.xml 
+You need to add some entries into your web.xml
 
 ```xml
 
@@ -88,7 +88,7 @@ Aditionally, you can add mappers for MediaTypes, by adding this to the web.xml
         <param-name>me.kisoft.jesse.feature</param-name>
         <param-value>{comma,seperated,features,class,names}</param-value>
     </init-param>
-    
+
 ```
 You can add your own custom mappers by implementing the ```MapperFeature``` interface.
 
@@ -118,7 +118,7 @@ For example,this is a complete configuration with a custom session manager and t
         <servlet-name> EventStream Endpoint </servlet-name>
         <url-pattern>/event/*</url-pattern>
     </servlet-mapping>
-    
+
 ```
 
 And Thats it! you are now ready to go
@@ -139,10 +139,10 @@ And Thats it! you are now ready to go
 
 ```
 
-Lets break this code down 
+Lets break this code down
 
-``` DefaultSessionManager ``` is the default implementation of the session manager, which is used by default if no custom SessionManager is provided. 
-It stores all active sessions in a list, and you can broadcast events to groups of sessions, individual sessions, or all sessions. 
+``` DefaultSessionManager ``` is the default implementation of the session manager, which is used by default if no custom SessionManager is provided.
+It stores all active sessions in a list, and you can broadcast events to groups of sessions, individual sessions, or all sessions.
 
 
 ``` SseEventBuilder ``` is a utility class to build a new ``` SseEvent ```. ```event("test")``` sets the type of the event to "test", ```mediaType(MediaType.APPLICATION_JSON)``` sets the media type to JSON,  ``` id(33) ``` sets the event id to "33",  ``` retry(500) ``` sets the retry interval to 500ms, ``` data(notificationData) ``` sends notification as the event data, and ``` build() ``` creates the ``` SseEvent ``` based on the previous functions. The resulting event would be
@@ -172,7 +172,7 @@ The following methods are mandatory to implement
 ## Custom Feature Mapping
 
 a custom feature mapper can be created by implementing the ```MapperFeature``` interface. As a note, feature registration is global for Jesse, meaning that all your SseSessions will use the same mapper modules. You need to
-implement these functions 
+implement these functions
 
 ``` serialize(Object object) throws WebApplicationException``` converts the Object into a String form for this mapper feature.
 
@@ -184,4 +184,4 @@ For now, MapperFeatures are restricted to handling the JAX-RS MediaTypes only, b
 
 # Building
 
-Nothing fancy, just clone and build using the pom.xml file. I havent gotten around to putting in test classes yet though.
+Nothing fancy, just clone and build using the pom.xml file. Unit tests are included

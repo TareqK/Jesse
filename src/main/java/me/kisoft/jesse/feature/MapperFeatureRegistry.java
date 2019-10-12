@@ -24,56 +24,62 @@ import javax.ws.rs.core.MediaType;
  */
 public class MapperFeatureRegistry {
 
-    private static MapperFeatureRegistry instance = getInstance();
-    private final HashMap<MediaType, MapperFeature> mappersMap = new HashMap();
+  private static MapperFeatureRegistry instance = getInstance();
+  private final HashMap<MediaType, MapperFeature> mappersMap = new HashMap();
 
-    /**
-     * Get the current instance of the mapper registry
-     *
-     * @return the current mapper registry instance
-     */
-    public static MapperFeatureRegistry getInstance() {
-        if (instance == null) {
-            instance = new MapperFeatureRegistry();
-        }
-        return instance;
+  /**
+   * Get the current instance of the mapper registry
+   *
+   * @return the current mapper registry instance
+   */
+  public static final MapperFeatureRegistry getInstance() {
+    if (instance == null) {
+      instance = new MapperFeatureRegistry();
     }
+    return instance;
+  }
 
-    /**
-     * Gets the mapper for a media type
-     *
-     * @param mediaType the media type to get the mapper for
-     * @return the mapper for that media type, if found, the plain text mapper
-     * otherwise
-     */
-    public MapperFeature get(MediaType mediaType) {
-        return mappersMap.getOrDefault(mediaType, mappersMap.get(MediaType.TEXT_PLAIN_TYPE));
-    }
+  /**
+   * Registers a plain text mapper feature
+   */
+  private MapperFeatureRegistry() {
+    this.register(new PlainTextMapperFeature());
+  }
 
-    /**
-     * Register a new MapperFeature
-     *
-     * @param mapperFeature the mapper feature to register
-     */
-    public void register(MapperFeature mapperFeature) {
-        mappersMap.put(mapperFeature.getMediaType(), mapperFeature);
-    }
+  /**
+   * Gets the mapper for a media type
+   *
+   * @param mediaType the media type to get the mapper for
+   * @return the mapper for that media type, if found, the plain text mapper otherwise
+   */
+  public final MapperFeature get(MediaType mediaType) {
+    return mappersMap.getOrDefault(mediaType, mappersMap.get(MediaType.TEXT_PLAIN_TYPE));
+  }
 
-    /**
-     * Removes a mapper feature from the registry
-     *
-     * @param mapperFeature the mapper feature to remove
-     */
-    public void unregister(MapperFeature mapperFeature) {
-        unregister(mapperFeature.getMediaType());
-    }
+  /**
+   * Register a new MapperFeature
+   *
+   * @param mapperFeature the mapper feature to register
+   */
+  public final void register(MapperFeature mapperFeature) {
+    mappersMap.put(mapperFeature.getMediaType(), mapperFeature);
+  }
 
-    /**
-     * removes a mapper feature from the registry by media type
-     *
-     * @param mediaType the media type whose mapper we are removing
-     */
-    public void unregister(MediaType mediaType) {
-        mappersMap.remove(mediaType);
-    }
+  /**
+   * Removes a mapper feature from the registry
+   *
+   * @param mapperFeature the mapper feature to remove
+   */
+  public final void unregister(MapperFeature mapperFeature) {
+    unregister(mapperFeature.getMediaType());
+  }
+
+  /**
+   * removes a mapper feature from the registry by media type
+   *
+   * @param mediaType the media type whose mapper we are removing
+   */
+  public final void unregister(MediaType mediaType) {
+    mappersMap.remove(mediaType);
+  }
 }

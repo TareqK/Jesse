@@ -22,6 +22,7 @@ class SseSessionKeepAlive {
   private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
   private static long interval = 120;
   private static final Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
+  private static final SseEvent PING_EVENT = new SseEventBuilder().event("ping").data("Keep-Alive").build();
 
   private SseSessionKeepAlive() {
     throw new IllegalArgumentException("This is a Utility Class");
@@ -57,10 +58,7 @@ class SseSessionKeepAlive {
     public void run() {
       try {
         SESSIONS.forEach(session -> {
-          session.pushEvent(new SseEventBuilder()
-           .event("ping")
-           .data("Keep-Alive")
-           .build());
+          session.pushEvent(PING_EVENT);
         });
       } finally {
         if (!Thread.interrupted()) {//only attempt a rescheduele if the thread hasnt been interrupted.
