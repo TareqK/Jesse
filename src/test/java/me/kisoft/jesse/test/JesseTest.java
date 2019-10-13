@@ -64,6 +64,10 @@ public class JesseTest {
     return requestId++;
   }
 
+  public static String getEventString() {
+    return "event-" + getId();
+  }
+
   /**
    * get the default timeout
    *

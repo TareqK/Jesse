@@ -40,19 +40,24 @@ public class BroadcastTest extends JesseTest {
   @BeforeAll
   public static void setup() throws Exception {
     HashMap<String, String> map = new HashMap<>();
-    map.put("me.kisoft.jesse.session.keepalive.enabled", "false");
     initializeTestEnvironment(map);
   }
 
   @Test
   public void eventSentTest() {
-    SseEvent event = SseEvent.getBuilder().data("test").id(getId()).event("test").build();
+    SseEvent event = SseEvent
+     .getBuilder()
+     .data("test")
+     .id(getId())
+     .event(getEventString())
+     .build();
+
     assertEquals(event, broadcastAndListen(event));
   }
 
   @Test
   public void eventValueTest() {
-    SseEvent event = SseEvent.getBuilder().data("test").id(getId()).event("test").build();
+    SseEvent event = SseEvent.getBuilder().data("test").id(getId()).event(getEventString()).build();
     assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event));
   }
 
@@ -62,10 +67,11 @@ public class BroadcastTest extends JesseTest {
     data.put("test", "thing1");
     data.put("thing2", "stuff");
 
-    SseEvent event = SseEvent.getBuilder()
+    SseEvent event = SseEvent
+     .getBuilder()
      .data(data)
      .id(getId())
-     .event("test")
+     .event(getEventString())
      .mediaType(MediaType.APPLICATION_JSON)
      .build();
 
@@ -78,10 +84,11 @@ public class BroadcastTest extends JesseTest {
     data.put("test", "thing1");
     data.put("thing2", "stuff");
 
-    SseEvent event = SseEvent.getBuilder()
+    SseEvent event = SseEvent
+     .getBuilder()
      .data(data)
      .id(getId())
-     .event("test")
+     .event(getEventString())
      .mediaType(MediaType.APPLICATION_XML)
      .build();
 
@@ -90,7 +97,13 @@ public class BroadcastTest extends JesseTest {
 
   @Test
   public void broadcastManyTest() {
-    SseEvent event = SseEvent.getBuilder().data("test").id(getId()).event("test").build();
+    SseEvent event = SseEvent
+     .getBuilder()
+     .data("test")
+     .id(getId())
+     .event(getEventString())
+     .build();
+
     for (int i = 0; i < 15; i++) {
       createSource();
     }
@@ -99,7 +112,6 @@ public class BroadcastTest extends JesseTest {
       futureList.add(listen(source, event));
     }
     DefaultSessionManager.broadcastEvent(event);
-    int i = 0;
     for (Future future : futureList) {
       SseEvent resolved = resolve((CompletableFuture<SseEvent>) future, getDefaultTimeout());
       assertEquals(event, resolved);
