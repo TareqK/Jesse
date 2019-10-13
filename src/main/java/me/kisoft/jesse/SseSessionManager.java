@@ -19,7 +19,7 @@ public abstract class SseSessionManager {
   /**
    * The thread pool that handles dispatching events
    */
-  private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(20);
+  private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(100);
 
   /**
    * Gets the executor service used to push events
