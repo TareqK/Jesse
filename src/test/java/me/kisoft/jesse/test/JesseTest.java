@@ -48,7 +48,7 @@ public class JesseTest {
   private final static String APPLICATION_BASE = "";
   private final static String JESSE_NAME = "Jesse Servlet";
   private final static int SERVER_PORT = 6090;
-  private final static int TIMEOUT = 30000;
+  private final static int TIMEOUT = 60000;
   private static final String URL = "http://localhost:" + SERVER_PORT + JESSE_BASE;
   private static final List<SseEventSource> SOURCES = new CopyOnWriteArrayList<>();
   private static Tomcat tomcat;
