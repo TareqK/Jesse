@@ -97,6 +97,7 @@ public class JesseTest {
     }
     wrapper.setAsyncSupported(true);
     tomcat.start();
+    Thread.sleep(1000);
     defaultSource = createSource();
 
   }
