@@ -47,13 +47,13 @@ public class BroadcastTest extends JesseTest {
   @Test
   public void eventSentTest() {
     SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
-    assertEquals(event, broadcastAndListen(event, 50));
+    assertEquals(event, broadcastAndListen(event));
   }
 
   @Test
   public void eventValueTest() {
     SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
-    assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event, 50));
+    assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event));
   }
 
   @Test
@@ -68,7 +68,7 @@ public class BroadcastTest extends JesseTest {
      .mediaType(MediaType.APPLICATION_JSON)
      .build();
 
-    assertEquals(event, broadcastAndListen(event, 500));
+    assertEquals(event, broadcastAndListen(event));
   }
 
   @Test
@@ -83,7 +83,7 @@ public class BroadcastTest extends JesseTest {
      .mediaType(MediaType.APPLICATION_XML)
      .build();
 
-    assertEquals(event, broadcastAndListen(event, 500));
+    assertEquals(event, broadcastAndListen(event));
   }
 
   @Test
@@ -99,7 +99,7 @@ public class BroadcastTest extends JesseTest {
     DefaultSessionManager.broadcastEvent(event);
     int i = 0;
     for (Future future : futureList) {
-      SseEvent resolved = resolve((CompletableFuture<SseEvent>) future, 30);
+      SseEvent resolved = resolve((CompletableFuture<SseEvent>) future, getDefaultTimeout());
       assertEquals(event, resolved);
     }
   }

@@ -52,8 +52,16 @@ public class JesseTest {
   private static final String URL = "http://localhost:" + SERVER_PORT + JESSE_BASE;
   private static final List<SseEventSource> SOURCES = new CopyOnWriteArrayList<>();
   private static Tomcat tomcat;
-  private final Object syncObject = new Object();
   private static SseEventSource defaultSource;
+
+  /**
+   * get the default timeout
+   *
+   * @return the default timeout
+   */
+  public static long getDefaultTimeout() {
+    return TIMEOUT;
+  }
 
   /**
    *
@@ -179,6 +187,17 @@ public class JesseTest {
   }
 
   /**
+   * Broadcasts and listens for an SseEvent.The event must have the exact same content as the sent event to match
+   *
+   * @param source the source to listen in for
+   * @param event the event to send and listen for
+   * @return the SseEvent, if found within the timeout period, null otherwise
+   */
+  public SseEvent broadcastAndListen(SseEventSource source, SseEvent event) {
+    return broadcastAndListen(source, event, getDefaultTimeout());
+  }
+
+  /**
    * Broadcasts and listens for an SseEvent on the default source.The event must have the exact same content as the sent event to match
    *
    * @param event the event to send and listen for
@@ -187,6 +206,16 @@ public class JesseTest {
    */
   public SseEvent broadcastAndListen(SseEvent event, long timeout) {
     return broadcastAndListen(defaultSource, event, timeout);
+  }
+
+  /**
+   * Broadcasts and listens for an SseEvent on the default source.The event must have the exact same content as the sent event to match
+   *
+   * @param event the event to send and listen for
+   * @return the SseEvent, if found within the timeout period, null otherwise
+   */
+  public SseEvent broadcastAndListen(SseEvent event) {
+    return broadcastAndListen(defaultSource, event, getDefaultTimeout());
   }
 
   /**
