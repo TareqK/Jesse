@@ -6,6 +6,8 @@
 package me.kisoft.jesse;
 
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -14,6 +16,7 @@ import java.util.HashSet;
 public class DefaultSessionManager extends SseSessionManager {
 
   private static final HashSet<SseSession> SESSIONS = new HashSet();
+  private static final Logger LOG = Logger.getLogger(DefaultSessionManager.class.getName());
 
   /**
    * The Default implementation of the session manager which simply stores sessions in a hashset
@@ -25,11 +28,13 @@ public class DefaultSessionManager extends SseSessionManager {
   @Override
   public void onClose(SseSession session) {
     SESSIONS.remove(session);
+    LOG.log(Level.FINEST, "Removed Session, Sessions are now{0}", SESSIONS.size());
   }
 
   @Override
   public void onOpen(SseSession session) {
     SESSIONS.add(session);
+    LOG.log(Level.FINEST, "Added Session, Sessions are now{0}", SESSIONS.size());
   }
 
   /**

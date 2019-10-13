@@ -94,6 +94,7 @@ public class SseSession {
             LOG.finest(ex.getMessage());
         } finally {
             removeKeepAlive();
+            asyncContext.complete();
         }
 
     }
@@ -202,7 +203,6 @@ public class SseSession {
         @Override
         public void onComplete(AsyncEvent ae) throws IOException {
             LOG.log(Level.FINEST, "{0} has completed", ae.toString());
-            closeSession();
         }
 
         @Override

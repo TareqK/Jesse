@@ -40,7 +40,7 @@ public class BroadcastTest extends JesseTest {
   @BeforeClass
   public static void setup() throws Exception {
     HashMap<String, String> map = new HashMap<>();
-    //map.put("me.kisoft.jesse.session.keepalive.enabled", "false");
+    map.put("me.kisoft.jesse.session.keepalive.enabled", "false");
     initializeTestEnvironment(map);
   }
 
