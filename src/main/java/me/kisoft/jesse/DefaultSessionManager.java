@@ -5,7 +5,8 @@
  */
 package me.kisoft.jesse;
 
-import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class DefaultSessionManager extends SseSessionManager {
 
-  private static final HashSet<SseSession> SESSIONS = new HashSet();
+  private static final Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
   private static final Logger LOG = Logger.getLogger(DefaultSessionManager.class.getName());
 
   /**

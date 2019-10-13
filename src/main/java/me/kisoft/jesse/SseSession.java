@@ -7,9 +7,13 @@ package me.kisoft.jesse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.AsyncContext;
@@ -28,7 +32,10 @@ import javax.ws.rs.core.Response;
 public class SseSession {
 
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(150);
+
   private static final Logger LOG = Logger.getLogger(SseSession.class.getName());
+  private Future keepaliveFuture;
+  private List<Future> pushFutures;
   private static final SseEvent WELCOME_EVENT = SseEvent
    .getBuilder()
    .data("welcome")
@@ -37,40 +44,22 @@ public class SseSession {
    .id(-9999)
    .build();
 
+  private static final SseEvent PING_EVENT = new SseEventBuilder().event("ping").data("Keep-Alive").build();
+
   private final AsyncContext asyncContext;
   private final SseSessionManager sessionManager;
-  private final boolean keepAlive;
 
   /**
    *
    * @param sessionManager the session manager to register this session in
    * @param asyncContext the async context of the request
-   * @param keepAlive whether to keep the session alive or not
    */
-  protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext, boolean keepAlive) {
+  protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
     this.sessionManager = sessionManager;
     this.asyncContext = asyncContext;
     this.asyncContext.addListener(new SseSessionListener());
-    this.keepAlive = keepAlive;
+    this.pushFutures = new ArrayList<>();
     openSession();
-  }
-
-  /**
-   * Removes this session from the keepalive list
-   */
-  private void removeKeepAlive() {
-    if (this.keepAlive) {
-      SseSessionKeepAlive.removeSession(this);
-    }
-  }
-
-  /**
-   * adds this session to the keepalive list
-   */
-  private void addKeepAlive() {
-    if (this.keepAlive) {
-      SseSessionKeepAlive.addSession(this);
-    }
   }
 
   /**
@@ -79,7 +68,7 @@ public class SseSession {
    * @param event the SSE Event to send
    */
   public void pushEvent(SseEvent event) {
-    EXECUTOR.submit(new SsePushRunnable(event));
+    pushFutures.add(EXECUTOR.submit(new SsePushRunnable(event)));
   }
 
   private void sessionError() {
@@ -96,7 +85,8 @@ public class SseSession {
     } catch (WebApplicationException ex) {
       LOG.finest(ex.getMessage());
     } finally {
-      removeKeepAlive();
+      stopKeepalive();
+      cancelRunningTasks();
       asyncContext.complete();
     }
 
@@ -109,7 +99,7 @@ public class SseSession {
     try {
       sessionManager.onOpen(this);
       sendGreeting();
-      addKeepAlive();
+      startKeepalive();
     } catch (WebApplicationException ex) {
       LOG.severe(ex.getMessage());
       sessionError();
@@ -198,6 +188,12 @@ public class SseSession {
     pushEvent(WELCOME_EVENT);
   }
 
+  private void cancelRunningTasks() {
+    for (Future future : pushFutures) {
+      future.cancel(true);
+    }
+  }
+
   private class SseSessionListener implements AsyncListener {
 
     @Override
@@ -231,17 +227,61 @@ public class SseSession {
 
     @Override
     public void run() {
-      try {
-        if (event != null) {
-          PrintWriter printWriter = asyncContext.getResponse().getWriter();
-          printWriter.write(event.getEventString());
-          asyncContext.getResponse().flushBuffer();
+      if (!Thread.interrupted()) {
+        try {
+          if (event != null) {
+            PrintWriter printWriter = asyncContext.getResponse().getWriter();
+            printWriter.write(event.getEventString());
+            asyncContext.getResponse().flushBuffer();
+          }
+        } catch (IOException ex) {
+          closeSession();
+          LOG.finest(ex.getMessage());
         }
-      } catch (IOException ex) {
-        closeSession();
-        LOG.finest(ex.getMessage());
+      }
+    }
+  }
+
+  /**
+   * A class that pings the session regularly
+   */
+  private class KeepaliveRunner implements Runnable {
+
+    @Override
+    public void run() {
+      if (!Thread.interrupted()) {
+        try {
+          pushEvent(PING_EVENT);
+        } finally {
+          LOG.finest("Resechedueling Keepalive thread");
+          schedueleKeepalive(this);
+        }
       }
     }
 
   }
+
+  /**
+   * Schedules the keepalive runner
+   */
+  private void startKeepalive() {
+    schedueleKeepalive(new KeepaliveRunner());
+    LOG.finest("Started Keepalive runner");
+  }
+
+  private void stopKeepalive() {
+    if (keepaliveFuture != null) {
+      keepaliveFuture.cancel(true);
+    }
+  }
+
+  /**
+   * shedules a keepalive runner with the globaly set refresh interval in seconds
+   *
+   * @param runner the runner to reshecuele
+   */
+  private void schedueleKeepalive(KeepaliveRunner runner) {
+    keepaliveFuture = SseSessionKeepAlive.getService().schedule(runner, SseSessionKeepAlive.getInterval(), TimeUnit.SECONDS);
+  }
+
 }

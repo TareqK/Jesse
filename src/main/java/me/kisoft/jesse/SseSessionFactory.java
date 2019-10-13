@@ -32,10 +32,9 @@ public class SseSessionFactory {
    *
    * @param asyncContext the async context of this request
    * @param manager the session manager to use
-   * @param keepAlive whether to keep the session alive or not
    * @return an SSE session
    */
-  protected SseSession createSession(AsyncContext asyncContext, SseSessionManager manager, boolean keepAlive) {
-    return new SseSession(manager, asyncContext, keepAlive);
+  protected SseSession createSession(AsyncContext asyncContext, SseSessionManager manager) {
+    return new SseSession(manager, asyncContext);
   }
 }

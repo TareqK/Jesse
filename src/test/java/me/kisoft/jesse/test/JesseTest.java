@@ -123,15 +123,13 @@ public class JesseTest {
   public static void destroyTestEnvironment() throws Exception {
     for (SseEventSource source : SOURCES) {
       try {
-        source.close();
+        source.close(5, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
         LOG.info(e.getMessage());
       } finally {
         SOURCES.remove(source);
-
       }
     }
-
     tomcat.stop();
     tomcat.destroy();
   }
@@ -264,6 +262,7 @@ public class JesseTest {
     @Override
     public void accept(InboundSseEvent inboundSseEvent) {
       if (inboundSseEvent.getId() == null ? toWatch.getId() == null : inboundSseEvent.getId().equals(toWatch.getId())) {
+        System.out.println(inboundSseEvent.getName());
         completableFuture.complete(toWatch);
       }
     }

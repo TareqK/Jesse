@@ -53,7 +53,7 @@ public class JesseServlet extends HttpServlet {
     asyncContextResponse.addHeader("Access-Control-Allow-Credentials", "true");
     asyncContextResponse.flushBuffer();
     EXECUTOR.submit(() -> {
-      SseSessionFactory.getInstance().createSession(asyncContext, manager, keepAlive);
+      SseSessionFactory.getInstance().createSession(asyncContext, manager);
 
     });
   }
@@ -95,7 +95,6 @@ public class JesseServlet extends HttpServlet {
           LOG.info("Defaulting to Keep-Alive interval of 120 seconds");
         }
       }
-      SseSessionKeepAlive.start();
       this.keepAlive = true;
     }
     try {
