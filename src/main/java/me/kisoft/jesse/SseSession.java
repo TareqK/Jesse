@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response;
  */
 public class SseSession {
 
-  private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+  private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(150);
   private final AsyncContext asyncContext;
 
   private final ReentrantLock lock;
