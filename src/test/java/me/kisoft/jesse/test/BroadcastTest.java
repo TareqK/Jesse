@@ -16,6 +16,8 @@
 package me.kisoft.jesse.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +68,7 @@ public class BroadcastTest extends JesseTest {
     HashMap<String, Object> data = new HashMap<>();
     data.put("test", "thing1");
     data.put("thing2", "stuff");
-
+    ObjectMapper mapper = new ObjectMapper();
     SseEvent event = SseEvent
      .getBuilder()
      .data(data)
@@ -75,7 +77,7 @@ public class BroadcastTest extends JesseTest {
      .mediaType(MediaType.APPLICATION_JSON)
      .build();
 
-    assertEquals(event, broadcastAndListen(event));
+    assertEquals(mapper.writeValueAsString(data), broadcastAndListen(event).getDataAsString());
   }
 
   @Test
@@ -83,7 +85,7 @@ public class BroadcastTest extends JesseTest {
     HashMap<String, Object> data = new HashMap<>();
     data.put("test", "thing1");
     data.put("thing2", "stuff");
-
+    XmlMapper mapper = new XmlMapper();
     SseEvent event = SseEvent
      .getBuilder()
      .data(data)
@@ -92,7 +94,7 @@ public class BroadcastTest extends JesseTest {
      .mediaType(MediaType.APPLICATION_XML)
      .build();
 
-    assertEquals(event, broadcastAndListen(event));
+    assertEquals(mapper.writeValueAsString(data), broadcastAndListen(event).getDataAsString());
   }
 
   @Test

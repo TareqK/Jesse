@@ -46,16 +46,6 @@ If you would like to use your own implementation of the SseSessionManager, then 
 
 ```
 
-If you would like to use regular keep-alive, then you have to add this init parameter
-
-```xml
-
-    <init-param >
-        <param-name>me.kisoft.jesse.session.keepalive.enabled</param-name >
-        <param-value>{true/false}</param-value >
-    </init-param >
-
-```
 
 You can also set the interval for the Keep-Alive, by using this paramter
 
@@ -164,9 +154,9 @@ The following methods are mandatory to implement
 
 ``` onOpen(SseSession sseSession) throws WebApplicationExceptoion ``` : This method is called when a new session is opened. ``` WebApplicationException ``` will terminate this session with the corrseponding Http Response code.
 
-``` onClose(SseSession sseSession) throws WebApplicationExceptoion ``` : This method is called when a session is being closed. ``` WebApplicationException ``` will terminate this session with the corrseponding Http Response code.
+``` onClose(SseSession sseSession) throws WebApplicationExceptoion ``` : This method is called when a session is being closed. will terminate this session. Should not throw any exceptions
 
-``` onError(SseSession sseSession)``` : This method is called if there is a transport error(The session has been closed for example, or some internal server error). I reccomend you use this to remove the session from your sessions list/map/whatever you are storing the sessions in.
+``` onError(SseSession sseSession)``` : This method is called if there is an error during opening the session. It should be used for logging/checking if resources were cleared.
 
 
 ## Custom Feature Mapping

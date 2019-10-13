@@ -103,6 +103,7 @@ public class JesseTest {
     Wrapper wrapper = Tomcat.addServlet(ctx, JESSE_NAME, new JesseServlet());
     wrapper.addInitParameter("me.kisoft.jesse.session.keepalive.enabled", "true");
     wrapper.addInitParameter("me.kisoft.jesse.session.keepalive.interval", "1");
+    wrapper.addInitParameter("me.kisoft.jesse.feature", "me.kisoft.jesse.feature.JacksonMapperFeature,me.kisoft.jesse.feature.JacksonXmlMapperFeature");
     ctx.addServletMappingDecoded(JESSE_BASE, JESSE_NAME);
     if (initParameters != null) {
       for (String key : initParameters.keySet()) {
@@ -185,7 +186,7 @@ public class JesseTest {
   }
 
   /**
-   * Broadcasts and listens for an SseEvent.The event must have the exact same content as the sent event to match
+   * Broadcasts and listens for an SseEvent.The event must have the exact same Id as the sent event to match
    *
    * @param source the source to listen in for
    * @param event the event to send and listen for
@@ -199,7 +200,7 @@ public class JesseTest {
   }
 
   /**
-   * Broadcasts and listens for an SseEvent.The event must have the exact same content as the sent event to match
+   * Broadcasts and listens for an SseEvent.The event must have the exact same Id as the sent event to match
    *
    * @param source the source to listen in for
    * @param event the event to send and listen for
@@ -210,7 +211,7 @@ public class JesseTest {
   }
 
   /**
-   * Broadcasts and listens for an SseEvent on the default source.The event must have the exact same content as the sent event to match
+   * Broadcasts and listens for an SseEvent on the default source.The event must have the exact same Id as the sent event to match
    *
    * @param event the event to send and listen for
    * @param timeout the timeout in milliseconds
@@ -221,7 +222,7 @@ public class JesseTest {
   }
 
   /**
-   * Broadcasts and listens for an SseEvent on the default source.The event must have the exact same content as the sent event to match
+   * Broadcasts and listens for an SseEvent on the default source as the sent event to match
    *
    * @param event the event to send and listen for
    * @return the SseEvent, if found within the timeout period, null otherwise
