@@ -238,6 +238,7 @@ public class SseSession {
           asyncContext.getResponse().flushBuffer();
         }
       } catch (IOException ex) {
+        closeSession();
         LOG.finest(ex.getMessage());
       }
     }
