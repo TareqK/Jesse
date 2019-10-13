@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 class SseSessionKeepAlive {
 
-  private static final ScheduledExecutorService KEEPALIVE_SERVICE = Executors.newScheduledThreadPool(5, Executors.defaultThreadFactory());
+  private static final ScheduledExecutorService KEEPALIVE_SERVICE = Executors.newScheduledThreadPool(1);
   private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
   private static long interval = 120;
   private static final Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
