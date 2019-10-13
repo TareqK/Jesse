@@ -208,13 +208,11 @@ public class SseSession {
     @Override
     public void onTimeout(AsyncEvent ae) throws IOException {
       LOG.log(Level.FINEST, "{0} has timed out", ae.toString());
-      closeSession();
     }
 
     @Override
     public void onError(AsyncEvent ae) throws IOException {
       LOG.log(Level.FINEST, "{0} has an error", ae.toString());
-      sessionError();
     }
 
     @Override
