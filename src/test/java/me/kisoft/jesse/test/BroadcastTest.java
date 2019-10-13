@@ -46,13 +46,13 @@ public class BroadcastTest extends JesseTest {
 
   @Test
   public void eventSentTest() {
-    SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
+    SseEvent event = SseEvent.getBuilder().data("test").id(getId()).event("test").build();
     assertEquals(event, broadcastAndListen(event));
   }
 
   @Test
   public void eventValueTest() {
-    SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
+    SseEvent event = SseEvent.getBuilder().data("test").id(getId()).event("test").build();
     assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event));
   }
 
@@ -64,6 +64,7 @@ public class BroadcastTest extends JesseTest {
 
     SseEvent event = SseEvent.getBuilder()
      .data(data)
+     .id(getId())
      .event("test")
      .mediaType(MediaType.APPLICATION_JSON)
      .build();
@@ -79,6 +80,7 @@ public class BroadcastTest extends JesseTest {
 
     SseEvent event = SseEvent.getBuilder()
      .data(data)
+     .id(getId())
      .event("test")
      .mediaType(MediaType.APPLICATION_XML)
      .build();
@@ -88,7 +90,7 @@ public class BroadcastTest extends JesseTest {
 
   @Test
   public void broadcastManyTest() {
-    SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
+    SseEvent event = SseEvent.getBuilder().data("test").id(getId()).event("test").build();
     for (int i = 0; i < 15; i++) {
       createSource();
     }

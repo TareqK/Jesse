@@ -53,6 +53,11 @@ public class JesseTest {
   private static final List<SseEventSource> SOURCES = new CopyOnWriteArrayList<>();
   private static Tomcat tomcat;
   private static SseEventSource defaultSource;
+  private static long requestId = 0L;
+
+  public static long getId() {
+    return requestId++;
+  }
 
   /**
    * get the default timeout
