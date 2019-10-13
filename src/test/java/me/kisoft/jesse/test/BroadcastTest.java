@@ -16,8 +16,6 @@
 package me.kisoft.jesse.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,13 +47,13 @@ public class BroadcastTest extends JesseTest {
   @Test
   public void eventSentTest() {
     SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
-    assertEquals(event, broadcastAndListen(event, 1));
+    assertEquals(event, broadcastAndListen(event, 50));
   }
 
   @Test
   public void eventValueTest() {
     SseEvent event = SseEvent.getBuilder().data("test").event("test").build();
-    assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event, 1));
+    assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event, 50));
   }
 
   @Test
@@ -64,15 +62,13 @@ public class BroadcastTest extends JesseTest {
     data.put("test", "thing1");
     data.put("thing2", "stuff");
 
-    ObjectMapper mapper = new ObjectMapper();
-
     SseEvent event = SseEvent.getBuilder()
      .data(data)
      .event("test")
      .mediaType(MediaType.APPLICATION_JSON)
      .build();
 
-    assertEquals(mapper.writeValueAsString(data), mapper.writeValueAsString(broadcastAndListen(event, 1).getData()));
+    assertEquals(event, broadcastAndListen(event, 500));
   }
 
   @Test
@@ -81,15 +77,13 @@ public class BroadcastTest extends JesseTest {
     data.put("test", "thing1");
     data.put("thing2", "stuff");
 
-    XmlMapper mapper = new XmlMapper();
-
     SseEvent event = SseEvent.getBuilder()
      .data(data)
      .event("test")
-     .mediaType(MediaType.APPLICATION_JSON)
+     .mediaType(MediaType.APPLICATION_XML)
      .build();
 
-    assertEquals(mapper.writeValueAsString(data), mapper.writeValueAsString(broadcastAndListen(event, 1).getData()));
+    assertEquals(event, broadcastAndListen(event, 500));
   }
 
   @Test

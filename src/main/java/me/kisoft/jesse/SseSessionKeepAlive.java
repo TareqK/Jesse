@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -18,7 +19,7 @@ import java.util.logging.Logger;
  */
 class SseSessionKeepAlive {
 
-  private static final ScheduledExecutorService KEEPALIVE_SERVICE = Executors.newScheduledThreadPool(1);
+  private static final ScheduledExecutorService KEEPALIVE_SERVICE = Executors.newScheduledThreadPool(5, Executors.defaultThreadFactory());
   private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
   private static long interval = 120;
   private static final Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
@@ -35,6 +36,7 @@ class SseSessionKeepAlive {
    */
   protected static void addSession(SseSession session) {
     SESSIONS.add(session);
+    LOG.log(Level.FINEST, "Added Keepalive, Sessions are now{0}", SESSIONS.size());
   }
 
   /**
@@ -44,6 +46,7 @@ class SseSessionKeepAlive {
    */
   protected static void removeSession(SseSession session) {
     SESSIONS.remove(session);
+    LOG.log(Level.FINEST, "Removed Keepalive, Sessions are now{0}", SESSIONS.size());
   }
 
   /**

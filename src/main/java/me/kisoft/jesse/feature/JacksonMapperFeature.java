@@ -38,7 +38,7 @@ public class JacksonMapperFeature implements MapperFeature {
   @Override
   public String serialize(Object object) throws WebApplicationException {
     try {
-      return mapper.writeValueAsString(object);
+      return mapper.writer().writeValueAsString(object);
     } catch (JsonProcessingException ex) {
       throw new WebApplicationException(ex.getMessage(), Response.Status.BAD_REQUEST);
     }
