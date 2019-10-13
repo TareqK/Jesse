@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.AsyncContext;
@@ -29,13 +28,7 @@ import javax.ws.rs.core.Response;
 public class SseSession {
 
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(150);
-  private final AsyncContext asyncContext;
-
-  private final ReentrantLock lock;
   private static final Logger LOG = Logger.getLogger(SseSession.class.getName());
-
-  private final SseSessionManager sessionManager;
-  private final boolean keepAlive;
   private static final SseEvent WELCOME_EVENT = SseEvent
    .getBuilder()
    .data("welcome")
@@ -43,6 +36,10 @@ public class SseSession {
    .mediaType(MediaType.TEXT_PLAIN)
    .id(-9999)
    .build();
+
+  private final AsyncContext asyncContext;
+  private final SseSessionManager sessionManager;
+  private final boolean keepAlive;
 
   /**
    *
@@ -52,7 +49,6 @@ public class SseSession {
    */
   protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext, boolean keepAlive) {
     this.sessionManager = sessionManager;
-    this.lock = new ReentrantLock();
     this.asyncContext = asyncContext;
     this.asyncContext.addListener(new SseSessionListener());
     this.keepAlive = keepAlive;
@@ -237,17 +233,14 @@ public class SseSession {
 
     @Override
     public void run() {
-      lock.lock();
       try {
         if (event != null) {
           PrintWriter printWriter = asyncContext.getResponse().getWriter();
-          printWriter.print(event.getEventString());
+          printWriter.write(event.getEventString());
           asyncContext.getResponse().flushBuffer();
         }
       } catch (IOException ex) {
         LOG.finest(ex.getMessage());
-      } finally {
-        lock.unlock();
       }
     }
 
