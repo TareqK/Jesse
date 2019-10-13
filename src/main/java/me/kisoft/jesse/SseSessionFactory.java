@@ -28,17 +28,6 @@ public class SseSessionFactory {
   }
 
   /**
-   * Create a session without keepalive
-   *
-   * @param asyncContext the async context of the request
-   * @param manager the session manager to use
-   * @return an SSE Session
-   */
-  protected SseSession createSession(AsyncContext asyncContext, SseSessionManager manager) {
-    return new SseSession(manager, asyncContext);
-  }
-
-  /**
    * Create a session with a keep alive param
    *
    * @param asyncContext the async context of this request

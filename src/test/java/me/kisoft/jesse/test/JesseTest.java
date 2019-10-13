@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -41,16 +42,18 @@ import org.apache.catalina.startup.Tomcat;
  */
 public class JesseTest {
 
-  public final static String JESSE_BASE = "/jesse";
-  public final static String APPLICATION_BASE = "";
-  public final static String JESSE_NAME = "Jesse Servlet";
-  public final static int SERVER_PORT = 6090;
-  public final static int TIMEOUT = 30000;
-  public static final String URL = "http://localhost:" + SERVER_PORT + JESSE_BASE;
-  public static final List<SseEventSource> SOURCES = new CopyOnWriteArrayList<>();
-  static Tomcat tomcat;
-  public final Object syncObject = new Object();
-  public static SseEventSource defaultSource;
+  private static final Logger LOG = Logger.getLogger(JesseTest.class.getName());
+
+  private final static String JESSE_BASE = "/jesse";
+  private final static String APPLICATION_BASE = "";
+  private final static String JESSE_NAME = "Jesse Servlet";
+  private final static int SERVER_PORT = 6090;
+  private final static int TIMEOUT = 30000;
+  private static final String URL = "http://localhost:" + SERVER_PORT + JESSE_BASE;
+  private static final List<SseEventSource> SOURCES = new CopyOnWriteArrayList<>();
+  private static Tomcat tomcat;
+  private final Object syncObject = new Object();
+  private static SseEventSource defaultSource;
 
   /**
    *
@@ -97,9 +100,16 @@ public class JesseTest {
    */
   public static void destroyTestEnvironment() throws Exception {
     for (SseEventSource source : SOURCES) {
-      SOURCES.remove(source);
-      source.close(30, TimeUnit.MILLISECONDS);
+      try {
+        source.close();
+      } catch (Exception e) {
+        LOG.info(e.getMessage());
+      } finally {
+        SOURCES.remove(source);
+
+      }
     }
+
     tomcat.stop();
     tomcat.destroy();
   }
@@ -190,6 +200,7 @@ public class JesseTest {
     try {
       return future.get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException ex) {
+      LOG.warning(ex.getMessage());
       return null;
     }
   }
