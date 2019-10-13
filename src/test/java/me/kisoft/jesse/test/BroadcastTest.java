@@ -25,11 +25,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.sse.SseEventSource;
 import me.kisoft.jesse.DefaultSessionManager;
 import me.kisoft.jesse.SseEvent;
-import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -37,7 +37,7 @@ import org.junit.Test;
  */
 public class BroadcastTest extends JesseTest {
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() throws Exception {
     HashMap<String, String> map = new HashMap<>();
     map.put("me.kisoft.jesse.session.keepalive.enabled", "false");
@@ -111,7 +111,7 @@ public class BroadcastTest extends JesseTest {
     getSourcesList().remove(source);
   }
 
-  @AfterClass
+  @AfterAll
   public static void shutdown() throws Exception {
     destroyTestEnvironment();
   }
