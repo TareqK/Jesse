@@ -7,6 +7,7 @@ package me.kisoft.jesse;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +19,7 @@ public class DefaultSessionManager extends SseSessionManager {
 
   private static final Set<SseSession> SESSIONS = ConcurrentHashMap.newKeySet();
   private static final Logger LOG = Logger.getLogger(DefaultSessionManager.class.getName());
+  private static final ReentrantLock LOCK = new ReentrantLock();
 
   /**
    * The Default implementation of the session manager which simply stores sessions in a hashset
@@ -28,14 +30,24 @@ public class DefaultSessionManager extends SseSessionManager {
 
   @Override
   public void onClose(SseSession session) {
-    SESSIONS.remove(session);
-    LOG.log(Level.FINEST, "Removed Session, Sessions are now{0}", SESSIONS.size());
+    LOCK.lock();
+    try {
+      SESSIONS.remove(session);
+      LOG.log(Level.FINEST, "Removed Session, Sessions are now{0}", SESSIONS.size());
+    } finally {
+      LOCK.unlock();
+    }
   }
 
   @Override
   public void onOpen(SseSession session) {
-    SESSIONS.add(session);
-    LOG.log(Level.FINEST, "Added Session, Sessions are now{0}", SESSIONS.size());
+    LOCK.lock();
+    try {
+      SESSIONS.add(session);
+      LOG.log(Level.FINEST, "Added Session, Sessions are now{0}", SESSIONS.size());
+    } finally {
+      LOCK.unlock();
+    }
   }
 
   /**
@@ -48,8 +60,8 @@ public class DefaultSessionManager extends SseSessionManager {
   }
 
   @Override
-  public void onError(SseSession session) {
-    SESSIONS.remove(session);
+  public void onError(SseSession session, Throwable t) {
+    LOG.severe(t.getMessage());
   }
 
 }

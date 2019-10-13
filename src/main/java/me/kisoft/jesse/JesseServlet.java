@@ -6,8 +6,6 @@
 package me.kisoft.jesse;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.AsyncContext;
@@ -27,15 +25,12 @@ import me.kisoft.jesse.feature.MapperFeatureRegistry;
 public class JesseServlet extends HttpServlet {
 
   private static final Logger LOG = Logger.getLogger(JesseServlet.class.getName());
-  private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
   private static final String SESSION_MANAGER_PROPERTY = "me.kisoft.jesse.session.manager";
   private static final String DOMAINS_PROPERTY = "me.kisoft.jesse.session.domains";
-  private static final String KEEPALIVE_ENABLED_PROPERTY = "me.kisoft.jesse.session.keepalive.enabled";
   private static final String KEEPALIVE_INTERVAL_PROPERTY = "me.kisoft.jesse.session.keepalive.interval";
   private static final String FEATURES_PROPERTY = "me.kisoft.jesse.feature";
-  private SseSessionManager manager;
+  private SseSessionManager sessionManager;
   private String domain = "*";
-  private boolean keepAlive = false;
 
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -52,8 +47,8 @@ public class JesseServlet extends HttpServlet {
     asyncContextResponse.addHeader("Access-Control-Expose-Headers", "*");
     asyncContextResponse.addHeader("Access-Control-Allow-Credentials", "true");
     asyncContextResponse.flushBuffer();
-    EXECUTOR.submit(() -> {
-      SseSessionFactory.getInstance().createSession(asyncContext, manager);
+    JesseExecutorService.getInstance().submit(() -> {
+      SseSessionFactory.getInstance().createSession(asyncContext, sessionManager);
 
     });
   }
@@ -78,37 +73,32 @@ public class JesseServlet extends HttpServlet {
     LOG.log(Level.INFO, "Jesse Servlet Starting at context {0}", config.getServletContext().getContextPath());
     String sessionManagerClassNameParameter = getServletConfig().getInitParameter(SESSION_MANAGER_PROPERTY);
     String domainInitParameter = getServletConfig().getInitParameter(DOMAINS_PROPERTY);
-    String keepAliveParameter = getServletConfig().getInitParameter(KEEPALIVE_ENABLED_PROPERTY);
     String keepAliveTimerParameter = getServletConfig().getInitParameter(KEEPALIVE_INTERVAL_PROPERTY);
     String mapperFeaturesParameter = getServletConfig().getInitParameter(FEATURES_PROPERTY);
     if (domainInitParameter != null) {
       this.domain = domainInitParameter;
     }
-    if (keepAliveParameter != null && keepAliveParameter.equals("true")) {
-      if (keepAliveTimerParameter != null) {
-        try {
-          long interval = Long.parseLong(keepAliveTimerParameter.trim());
-          SseSessionKeepAlive.setInterval(interval);
-          LOG.info("Set the Keep-Alive interval to ".concat(String.valueOf(interval)).concat(" seconds"));
-        } catch (NumberFormatException ex) {
-          LOG.severe(ex.getMessage());
-          LOG.info("Defaulting to Keep-Alive interval of 120 seconds");
-        }
-      }
-      this.keepAlive = true;
+
+    try {
+      long interval = Long.parseLong(keepAliveTimerParameter.trim());
+      SseSessionKeepAlive.setInterval(interval);
+      LOG.info("Set the Keep-Alive interval to ".concat(String.valueOf(interval)).concat(" seconds"));
+    } catch (NumberFormatException ex) {
+      LOG.severe(ex.getMessage());
+      LOG.info("Defaulting to Keep-Alive interval of 120 seconds");
     }
+
     try {
       if (sessionManagerClassNameParameter != null && sessionManagerClassNameParameter.length() > 0) {
         Class<?> sessionManagerClass = Class.forName(sessionManagerClassNameParameter);
-        SseSessionManager sessionManager = (SseSessionManager) sessionManagerClass.newInstance();
-        this.manager = sessionManager;
+        this.sessionManager = (SseSessionManager) sessionManagerClass.newInstance();
         LOG.info("using ".concat(sessionManagerClass.getCanonicalName()).concat(" as session manager"));
       } else {
         LOG.info(" defaulting to built in session manager");
-        this.manager = new DefaultSessionManager();
+        this.sessionManager = new DefaultSessionManager();
       }
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NullPointerException ex) {
-      this.manager = new DefaultSessionManager();
+      this.sessionManager = new DefaultSessionManager();
       LOG.warning(ex.getMessage().concat(" defaulting to built in session manager"));
     }
     if (mapperFeaturesParameter != null) {
@@ -138,5 +128,11 @@ public class JesseServlet extends HttpServlet {
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NullPointerException ex) {
       LOG.warning(ex.getMessage());
     }
+  }
+
+  @Override
+  public void destroy() {
+    LOG.info("Destroying Jesse Servlet");
+    JesseExecutorService.getInstance().shutdownNow();
   }
 }

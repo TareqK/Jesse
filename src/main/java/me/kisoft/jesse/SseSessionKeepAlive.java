@@ -5,8 +5,8 @@
  */
 package me.kisoft.jesse;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -17,19 +17,13 @@ class SseSessionKeepAlive {
 
   private static final Logger LOG = Logger.getLogger(SseSessionKeepAlive.class.getName());
   private static long interval = 120;
-  private static final ScheduledExecutorService KEEPALIVE_SERVICE = Executors.newScheduledThreadPool(100);
+
+  static Future schedule(SseSession.KeepaliveRunner runner) {
+    return JesseExecutorService.getInstance().schedule(runner, SseSessionKeepAlive.getInterval(), TimeUnit.SECONDS);
+  }
 
   private SseSessionKeepAlive() {
     throw new IllegalArgumentException("This is a Utility Class");
-  }
-
-  /**
-   * Gets the keepalive service
-   *
-   * @return the keepalive service
-   */
-  public static ScheduledExecutorService getService() {
-    return KEEPALIVE_SERVICE;
   }
 
   /**
@@ -50,4 +44,5 @@ class SseSessionKeepAlive {
   protected static long getInterval() {
     return interval;
   }
+
 }

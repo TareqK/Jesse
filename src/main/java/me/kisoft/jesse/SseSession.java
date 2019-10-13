@@ -7,18 +7,11 @@ package me.kisoft.jesse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 import javax.servlet.AsyncContext;
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
@@ -31,11 +24,8 @@ import javax.ws.rs.core.Response;
  */
 public class SseSession {
 
-  private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(150);
-
   private static final Logger LOG = Logger.getLogger(SseSession.class.getName());
-  private Future keepaliveFuture;
-  private List<Future> pushFutures;
+
   private static final SseEvent WELCOME_EVENT = SseEvent
    .getBuilder()
    .data("welcome")
@@ -44,10 +34,62 @@ public class SseSession {
    .id(-9999)
    .build();
 
-  private static final SseEvent PING_EVENT = new SseEventBuilder().event("ping").data("Keep-Alive").build();
+  private static final SseEvent PING_EVENT = SseEvent
+   .getBuilder()
+   .event("ping")
+   .data("Keep-Alive")
+   .mediaType(MediaType.TEXT_PLAIN)
+   .id(-9999)
+   .build();
 
   private final AsyncContext asyncContext;
   private final SseSessionManager sessionManager;
+  private final ReentrantLock openLock;
+
+  private Future keepaliveFuture;
+  private boolean open;
+
+  /**
+   * Checks if the session is closed
+   *
+   * @return true if the session is closed, false otherwise.
+   */
+  public boolean isClosed() {
+    openLock.lock();
+    try {
+      return !this.open;
+    } finally {
+      openLock.unlock();
+    }
+  }
+
+  /**
+   * Checks if the session is open
+   *
+   * @return true if the session is open, false otherwise
+   */
+  public boolean isOpen() {
+    openLock.lock();
+    try {
+      return this.open;
+    } finally {
+      openLock.unlock();
+    }
+  }
+
+  /**
+   * Sets if the session is open or not
+   *
+   * @param value the new value of open
+   */
+  private void setOpen(boolean value) {
+    openLock.lock();
+    try {
+      this.open = value;
+    } finally {
+      openLock.unlock();
+    }
+  }
 
   /**
    *
@@ -57,8 +99,7 @@ public class SseSession {
   protected SseSession(SseSessionManager sessionManager, AsyncContext asyncContext) {
     this.sessionManager = sessionManager;
     this.asyncContext = asyncContext;
-    this.asyncContext.addListener(new SseSessionListener());
-    this.pushFutures = new ArrayList<>();
+    this.openLock = new ReentrantLock();
     openSession();
   }
 
@@ -68,11 +109,17 @@ public class SseSession {
    * @param event the SSE Event to send
    */
   public void pushEvent(SseEvent event) {
-    pushFutures.add(EXECUTOR.submit(new SsePushRunnable(event)));
+    SseEventPusher.submit(new SsePushRunnable(event));
+
   }
 
-  private void sessionError() {
-    sessionManager.onError(this);
+  /**
+   * Called when there is an error opening the session
+   *
+   * @param t the error that happened
+   */
+  private void sessionError(Throwable t) {
+    sessionManager.onError(this, t);
     closeSession();
   }
 
@@ -80,14 +127,12 @@ public class SseSession {
    * Closes this sseSession
    */
   public void closeSession() {
+    setOpen(false);
+    stopKeepalive();
     try {
-      sessionManager.onClose(this);
-    } catch (WebApplicationException ex) {
-      LOG.finest(ex.getMessage());
-    } finally {
-      stopKeepalive();
-      cancelRunningTasks();
       asyncContext.complete();
+    } finally {
+      sessionManager.onClose(this);
     }
 
   }
@@ -98,11 +143,11 @@ public class SseSession {
   private void openSession() {
     try {
       sessionManager.onOpen(this);
+      setOpen(true);
       sendGreeting();
       startKeepalive();
-    } catch (WebApplicationException ex) {
-      LOG.severe(ex.getMessage());
-      sessionError();
+    } catch (Throwable ex) {
+      sessionError(ex);
     }
   }
 
@@ -188,51 +233,30 @@ public class SseSession {
     pushEvent(WELCOME_EVENT);
   }
 
-  private void cancelRunningTasks() {
-    for (Future future : pushFutures) {
-      future.cancel(true);
-    }
-  }
-
-  private class SseSessionListener implements AsyncListener {
-
-    @Override
-    public void onComplete(AsyncEvent ae) throws IOException {
-      LOG.log(Level.FINEST, "{0} has completed", ae.toString());
-    }
-
-    @Override
-    public void onTimeout(AsyncEvent ae) throws IOException {
-      LOG.log(Level.FINEST, "{0} has timed out", ae.toString());
-    }
-
-    @Override
-    public void onError(AsyncEvent ae) throws IOException {
-      LOG.log(Level.FINEST, "{0} has an error", ae.toString());
-    }
-
-    @Override
-    public void onStartAsync(AsyncEvent ae) throws IOException {
-      LOG.log(Level.FINEST, "{0} has started", ae.toString());
-    }
-  }
-
-  private class SsePushRunnable implements Runnable {
+  /**
+   * A runnable that asynchronously pushes an event.
+   */
+  protected class SsePushRunnable implements Runnable {
 
     private final SseEvent event;
 
-    SsePushRunnable(SseEvent event) {
+    /**
+     * Creates a new Push Runnable for this event
+     *
+     * @param event the event to push
+     */
+    public SsePushRunnable(SseEvent event) {
       this.event = event;
     }
 
     @Override
     public void run() {
-      if (!Thread.interrupted()) {
+      if (!isClosed()) {//if the thread is interrupted, then the event is not pushed
         try {
           if (event != null) {
             PrintWriter printWriter = asyncContext.getResponse().getWriter();
             printWriter.write(event.getEventString());
-            asyncContext.getResponse().flushBuffer();
+            printWriter.flush();
           }
         } catch (IOException ex) {
           closeSession();
@@ -245,7 +269,7 @@ public class SseSession {
   /**
    * A class that pings the session regularly
    */
-  private class KeepaliveRunner implements Runnable {
+  protected class KeepaliveRunner implements Runnable {
 
     @Override
     public void run() {
@@ -281,7 +305,7 @@ public class SseSession {
    * @param runner the runner to reshecuele
    */
   private void schedueleKeepalive(KeepaliveRunner runner) {
-    keepaliveFuture = SseSessionKeepAlive.getService().schedule(runner, SseSessionKeepAlive.getInterval(), TimeUnit.SECONDS);
+    keepaliveFuture = SseSessionKeepAlive.schedule(runner);
   }
 
 }

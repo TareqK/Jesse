@@ -262,7 +262,6 @@ public class JesseTest {
     @Override
     public void accept(InboundSseEvent inboundSseEvent) {
       if (inboundSseEvent.getId() == null ? toWatch.getId() == null : inboundSseEvent.getId().equals(toWatch.getId())) {
-        System.out.println(inboundSseEvent.getName());
         completableFuture.complete(toWatch);
       }
     }

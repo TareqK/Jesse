@@ -7,7 +7,6 @@ package me.kisoft.jesse;
 
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import javax.ws.rs.WebApplicationException;
 
 /**
@@ -17,17 +16,12 @@ import javax.ws.rs.WebApplicationException;
 public abstract class SseSessionManager {
 
   /**
-   * The thread pool that handles dispatching events
-   */
-  private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(100);
-
-  /**
    * Gets the executor service used to push events
    *
    * @return an executor service
    */
-  public static final ExecutorService getExecutor() {
-    return EXECUTOR;
+  private static ExecutorService getExecutor() {
+    return JesseExecutorService.getInstance();
   }
 
   /**
@@ -82,7 +76,7 @@ public abstract class SseSessionManager {
    * @param session the session to close
    * @throws WebApplicationException if there is an issue closing the session
    */
-  public abstract void onClose(SseSession session) throws WebApplicationException;
+  public abstract void onClose(SseSession session);
 
   /**
    * A method called when a session is being opened
@@ -94,11 +88,11 @@ public abstract class SseSessionManager {
   public abstract void onOpen(SseSession session) throws WebApplicationException;
 
   /**
-   * A method called when there is an error in sending in a session. Usually use this to clean up any resources associated with the session
-   * and remove any references you have to it.
+   * A method called when there is an error in sending in a session.
    *
    * @param session the session on whom the error has happened
+   * @param t the error that happened
    */
-  public abstract void onError(SseSession session);
+  public abstract void onError(SseSession session, Throwable t);
 
 }
