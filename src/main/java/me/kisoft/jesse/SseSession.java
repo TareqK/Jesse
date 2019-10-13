@@ -108,8 +108,8 @@ public class SseSession {
   private void openSession() {
     try {
       sessionManager.onOpen(this);
-      addKeepAlive();
       sendGreeting();
+      addKeepAlive();
     } catch (WebApplicationException ex) {
       LOG.severe(ex.getMessage());
       sessionError();
