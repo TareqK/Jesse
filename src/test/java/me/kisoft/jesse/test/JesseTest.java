@@ -55,6 +55,11 @@ public class JesseTest {
   private static SseEventSource defaultSource;
   private static long requestId = 0L;
 
+  /**
+   * Gets a new ID for this request.
+   *
+   * @return a new requestId
+   */
   public static long getId() {
     return requestId++;
   }

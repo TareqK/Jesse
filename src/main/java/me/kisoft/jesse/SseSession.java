@@ -242,7 +242,7 @@ public class SseSession {
         if (event != null) {
           PrintWriter printWriter = asyncContext.getResponse().getWriter();
           printWriter.print(event.getEventString());
-          printWriter.flush();
+          asyncContext.getResponse().flushBuffer();
         }
       } catch (IOException ex) {
         LOG.finest(ex.getMessage());
