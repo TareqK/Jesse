@@ -30,6 +30,7 @@ import me.kisoft.jesse.SseEvent;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -54,13 +55,13 @@ public class BroadcastTest extends JesseTest {
      .event(getEventString())
      .build();
 
-    assertEquals(event, broadcastAndListen(event));
+    assertEquals(event, broadcastAndListen(event, new SseEventIdWatcher(event)));
   }
 
   @Test
   public void eventValueTest() {
     SseEvent event = SseEvent.getBuilder().data("test").id(getId()).event(getEventString()).build();
-    assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event));
+    assertNotEquals(SseEvent.getBuilder().build(), broadcastAndListen(event, new SseEventIdWatcher(event)));
   }
 
   @Test
@@ -77,7 +78,7 @@ public class BroadcastTest extends JesseTest {
      .mediaType(MediaType.APPLICATION_JSON)
      .build();
 
-    assertEquals(mapper.writeValueAsString(data), broadcastAndListen(event).getDataAsString());
+    assertEquals(mapper.writeValueAsString(data), broadcastAndListen(event, new SseEventIdWatcher(event)).getDataAsString());
   }
 
   @Test
@@ -94,7 +95,7 @@ public class BroadcastTest extends JesseTest {
      .mediaType(MediaType.APPLICATION_XML)
      .build();
 
-    assertEquals(mapper.writeValueAsString(data), broadcastAndListen(event).getDataAsString());
+    assertEquals(mapper.writeValueAsString(data), broadcastAndListen(event, new SseEventIdWatcher(event)).getDataAsString());
   }
 
   @Test
@@ -111,13 +112,27 @@ public class BroadcastTest extends JesseTest {
     }
     List<Future<SseEvent>> futureList = new ArrayList<>();
     for (SseEventSource source : getSourcesList()) {
-      futureList.add(listen(source, event));
+      futureList.add(listen(source, event, new SseEventIdWatcher(event)));
     }
     DefaultSessionManager.broadcastEvent(event);
     for (Future future : futureList) {
       SseEvent resolved = resolve((CompletableFuture<SseEvent>) future, getDefaultTimeout());
       assertEquals(event, resolved);
     }
+  }
+
+  @Test
+  public void checkPingTest() {
+    SseEvent event = SseEvent
+     .getBuilder()
+     .event("ping")
+     .build();
+
+    CompletableFuture<SseEvent> listen = listen(event, new SseEventNameWatcher(event));
+    assertTrue(resolve(listen, 3000) != null);
+
+    CompletableFuture<SseEvent> listen2 = listen(event, new SseEventNameWatcher(event));
+    assertTrue(resolve(listen2, 3000) != null);
   }
 
   @Test
