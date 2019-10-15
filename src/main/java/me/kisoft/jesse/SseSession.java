@@ -48,6 +48,11 @@ public class SseSession {
 
   private Future keepaliveFuture;
   private boolean open;
+  private String sessionId;
+
+  public String getSessionId() {
+    return sessionId;
+  }
 
   /**
    * Checks if the session is closed
@@ -142,6 +147,7 @@ public class SseSession {
    */
   private void openSession() {
     try {
+      this.sessionId = sessionManager.getSessionId(this);
       sessionManager.onOpen(this);
       setOpen(true);
       sendGreeting();
