@@ -22,12 +22,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.sse.InboundSseEvent;
 import javax.ws.rs.sse.SseEventSource;
 import me.kisoft.jesse.DefaultSessionManager;
 import me.kisoft.jesse.JesseServlet;
@@ -168,8 +166,7 @@ public class JesseTest {
    * @param event the event to send and listen for
    * @return the Future for this Sse Event
    */
-  public CompletableFuture<SseEvent> listen(SseEventSource source, SseEvent event) {
-    SseEventWatcher watcher = new SseEventWatcher(event);
+  public CompletableFuture<SseEvent> listen(SseEventSource source, SseEvent event, SseEventWatcher watcher) {
     source.register(watcher);
     return watcher.getFuture();
 
@@ -179,10 +176,11 @@ public class JesseTest {
    * Listens for an SseEvent on the default source
    *
    * @param event the event to send and listen for
+   * @param watcher the watcher for this event
    * @return the Future for this Sse Event
    */
-  public CompletableFuture<SseEvent> listen(SseEvent event) {
-    return listen(defaultSource, event);
+  public CompletableFuture<SseEvent> listen(SseEvent event, SseEventWatcher watcher) {
+    return listen(defaultSource, event, watcher);
   }
 
   /**
@@ -190,11 +188,12 @@ public class JesseTest {
    *
    * @param source the source to listen in for
    * @param event the event to send and listen for
+   * @param watcher the watcher for this event
    * @param timeout the timeout in milliseconds
    * @return the SseEvent, if found within the timeout period, null otherwise
    */
-  public SseEvent broadcastAndListen(SseEventSource source, SseEvent event, long timeout) {
-    CompletableFuture<SseEvent> future = listen(source, event);
+  public SseEvent broadcastAndListen(SseEventSource source, SseEvent event, SseEventWatcher watcher, long timeout) {
+    CompletableFuture<SseEvent> future = listen(source, event, watcher);
     DefaultSessionManager.broadcastEvent(event);
     return resolve(future, timeout);
   }
@@ -204,31 +203,34 @@ public class JesseTest {
    *
    * @param source the source to listen in for
    * @param event the event to send and listen for
+   * @param watcher the watcher for this event
    * @return the SseEvent, if found within the timeout period, null otherwise
    */
-  public SseEvent broadcastAndListen(SseEventSource source, SseEvent event) {
-    return broadcastAndListen(source, event, getDefaultTimeout());
+  public SseEvent broadcastAndListen(SseEventSource source, SseEvent event, SseEventWatcher watcher) {
+    return broadcastAndListen(source, event, watcher, getDefaultTimeout());
   }
 
   /**
    * Broadcasts and listens for an SseEvent on the default source.The event must have the exact same Id as the sent event to match
    *
    * @param event the event to send and listen for
+   * @param watcher the watcher for this event
    * @param timeout the timeout in milliseconds
    * @return the SseEvent, if found within the timeout period, null otherwise
    */
-  public SseEvent broadcastAndListen(SseEvent event, long timeout) {
-    return broadcastAndListen(defaultSource, event, timeout);
+  public SseEvent broadcastAndListen(SseEvent event, SseEventWatcher watcher, long timeout) {
+    return broadcastAndListen(defaultSource, event, watcher, timeout);
   }
 
   /**
    * Broadcasts and listens for an SseEvent on the default source as the sent event to match
    *
    * @param event the event to send and listen for
+   * @param watcher the watcher for this event
    * @return the SseEvent, if found within the timeout period, null otherwise
    */
-  public SseEvent broadcastAndListen(SseEvent event) {
-    return broadcastAndListen(defaultSource, event, getDefaultTimeout());
+  public SseEvent broadcastAndListen(SseEvent event, SseEventWatcher watcher) {
+    return broadcastAndListen(defaultSource, event, watcher, getDefaultTimeout());
   }
 
   /**
@@ -244,31 +246,6 @@ public class JesseTest {
     } catch (InterruptedException | ExecutionException | TimeoutException ex) {
       LOG.warning(ex.getMessage());
       return null;
-    }
-  }
-
-  /**
-   * A class to watch for an SseEvent by matching the whole event string
-   */
-  protected class SseEventWatcher implements Consumer<InboundSseEvent> {
-
-    private final SseEvent toWatch;
-    private final CompletableFuture<SseEvent> completableFuture;
-
-    public SseEventWatcher(SseEvent watchedEvent) {
-      this.toWatch = watchedEvent;
-      this.completableFuture = new CompletableFuture();
-    }
-
-    @Override
-    public void accept(InboundSseEvent inboundSseEvent) {
-      if (inboundSseEvent.getId() == null ? toWatch.getId() == null : inboundSseEvent.getId().equals(toWatch.getId())) {
-        completableFuture.complete(toWatch);
-      }
-    }
-
-    public CompletableFuture<SseEvent> getFuture() {
-      return this.completableFuture;
     }
   }
 
