@@ -6,6 +6,7 @@
 package me.kisoft.jesse;
 
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import javax.ws.rs.WebApplicationException;
 
@@ -95,4 +96,13 @@ public abstract class SseSessionManager {
    */
   public abstract void onError(SseSession session, Throwable t);
 
+  /**
+   * Generate a session id for this session
+   *
+   * @param session the session to generate the ID for
+   * @return a new sesison Id as string
+   */
+  public String getSessionId(SseSession session) {
+    return UUID.randomUUID().toString();
+  }
 }
